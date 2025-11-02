@@ -7,6 +7,7 @@ A comprehensive Docusaurus plugin that provides glossary functionality with an a
 - **Auto-generated Glossary Page**: Displays all terms alphabetically with letter navigation
 - **Search Functionality**: Real-time search across terms and definitions
 - **GlossaryTerm Component**: Inline component for linking terms with tooltip previews
+- **Automatic Term Detection**: Automatically detect and link glossary terms in markdown files with tooltips
 - **Responsive Design**: Mobile-friendly UI with dark mode support
 - **Related Terms**: Link between related glossary terms
 - **Abbreviation Support**: Display full form of abbreviated terms
@@ -24,15 +25,44 @@ A comprehensive Docusaurus plugin that provides glossary functionality with an a
 
 2. Add the plugin to your `docusaurus.config.js`:
    ```javascript
-   plugins: [
-     [
-       require.resolve('./src/plugins/docusaurus-plugin-glossary'),
-       {
-         glossaryPath: 'glossary/glossary.json', // optional, default: 'glossary/glossary.json'
-         routePath: '/glossary', // optional, default: '/glossary'
-       },
+   const glossaryPlugin = require.resolve('./src/plugins/docusaurus-plugin-glossary');
+
+   module.exports = {
+     // ... other config
+     plugins: [
+       [
+         glossaryPlugin,
+         {
+           glossaryPath: 'glossary/glossary.json', // optional, default: 'glossary/glossary.json'
+           routePath: '/glossary', // optional, default: '/glossary'
+           autoLinkTerms: true, // optional, default: true - automatically link terms in markdown
+         },
+       ],
      ],
-   ];
+     // ... other config
+   };
+   ```
+
+3. **Enable automatic term detection** by adding the remark plugin to your markdown configuration:
+   ```javascript
+   const glossaryPlugin = require('./src/plugins/docusaurus-plugin-glossary');
+
+   module.exports = {
+     // ... other config
+     markdown: {
+       remarkPlugins: [
+         [
+           glossaryPlugin.remarkPlugin,
+           {
+             glossaryPath: 'glossary/glossary.json',
+             routePath: '/glossary',
+             siteDir: process.cwd(), // or your site directory
+           },
+         ],
+       ],
+     },
+     // ... other config
+   };
    ```
 
 ### For Separate Package (To Publish)
@@ -54,6 +84,8 @@ To publish this as a separate npm package:
    ├── components/
    │   ├── GlossaryPage.js
    │   └── GlossaryPage.module.css
+   ├── remark/
+   │   └── glossary-terms.js
    ├── theme/
    │   └── GlossaryTerm/
    │       ├── index.js
@@ -70,6 +102,14 @@ To publish this as a separate npm package:
      "version": "1.0.0",
      "description": "A Docusaurus plugin for creating and managing glossary terms",
      "main": "index.js",
+     "files": [
+       "index.js",
+       "components/",
+       "theme/",
+       "remark/",
+       "README.md",
+       "LICENSE"
+     ],
      "keywords": ["docusaurus", "glossary", "plugin", "documentation"],
      "peerDependencies": {
        "@docusaurus/core": "^3.0.0",
@@ -77,7 +117,11 @@ To publish this as a separate npm package:
        "react-dom": "^18.0.0"
      },
      "dependencies": {
-       "fs-extra": "^11.0.0"
+       "fs-extra": "^11.0.0",
+       "unist-util-visit": "^5.0.0"
+     },
+     "engines": {
+       "node": ">=16.14"
      }
    }
    ```
@@ -96,15 +140,43 @@ To publish this as a separate npm package:
 
 6. Add to your `docusaurus.config.js`:
    ```javascript
-   plugins: [
-     [
-       'docusaurus-plugin-glossary',
-       {
-         glossaryPath: 'glossary/glossary.json',
-         routePath: '/glossary',
-       },
+   const glossaryPlugin = require('docusaurus-plugin-glossary');
+   
+   module.exports = {
+     // ... other config
+     plugins: [
+       [
+         'docusaurus-plugin-glossary',
+         {
+           glossaryPath: 'glossary/glossary.json',
+           routePath: '/glossary',
+         },
+       ],
      ],
-   ];
+     // ... other config
+   };
+   ```
+
+7. **Enable automatic term detection** by adding the remark plugin to your markdown configuration:
+   ```javascript
+   const glossaryPlugin = require('docusaurus-plugin-glossary');
+   
+   module.exports = {
+     // ... other config
+     markdown: {
+       remarkPlugins: [
+         [
+           glossaryPlugin.remarkPlugin,
+           {
+             glossaryPath: 'glossary/glossary.json',
+             routePath: '/glossary',
+             siteDir: process.cwd(), // or your site directory
+           },
+         ],
+       ],
+     },
+     // ... other config
+   };
    ```
 
 ## Usage
@@ -143,9 +215,26 @@ Each term object can include:
 - `relatedTerms` (optional): Array of related term names
 - `id` (optional): Custom ID for linking (auto-generated from term if not provided)
 
-### 3. Using the GlossaryTerm Component
+### 3. Automatic Term Detection
 
-Import and use the `GlossaryTerm` component in your MDX files:
+When the remark plugin is configured (see Installation), glossary terms are automatically detected and linked in all markdown files. Simply write your content normally:
+
+```markdown
+Our API uses REST principles to provide a simple interface.
+
+This project supports webhooks for real-time notifications.
+```
+
+Terms like "API", "REST", and "webhooks" will automatically be detected if they're defined in your glossary and will appear with:
+- Dotted underline styling
+- Tooltip showing definition on hover
+- Link to full glossary page entry
+
+**Note**: Automatic detection works for whole words only and respects word boundaries. Terms inside code blocks, links, or existing MDX components are not processed.
+
+### 4. Using the GlossaryTerm Component Manually
+
+For more control or when automatic detection isn't sufficient, you can manually import and use the `GlossaryTerm` component in your MDX files:
 
 ```jsx
 import GlossaryTerm from '@theme/GlossaryTerm';
@@ -163,7 +252,7 @@ The component features:
 - Link to full glossary page entry
 - Accessible with keyboard navigation
 
-### 4. Accessing the Glossary Page
+### 5. Accessing the Glossary Page
 
 The glossary page is automatically available at `/glossary` (or your configured `routePath`).
 
@@ -177,10 +266,11 @@ Features:
 
 ## Configuration Options
 
-| Option         | Type   | Default                    | Description                                           |
-| -------------- | ------ | -------------------------- | ----------------------------------------------------- |
-| `glossaryPath` | string | `'glossary/glossary.json'` | Path to glossary JSON file relative to site directory |
-| `routePath`    | string | `'/glossary'`              | URL path for glossary page                            |
+| Option         | Type    | Default                    | Description                                           |
+| -------------- | ------- | -------------------------- | ----------------------------------------------------- |
+| `glossaryPath` | string  | `'glossary/glossary.json'` | Path to glossary JSON file relative to site directory |
+| `routePath`    | string  | `'/glossary'`              | URL path for glossary page                            |
+| `autoLinkTerms`| boolean | `true`                     | Enable automatic term detection in markdown (requires remark plugin configuration) |
 
 ## Customization
 
@@ -241,7 +331,24 @@ themeConfig: {
 }
 ```
 
-### Example 2: Using in MDX
+### Example 2: Automatic Term Detection
+
+With the remark plugin configured, you can simply write markdown normally:
+
+```markdown
+---
+title: API Documentation
+---
+
+# Getting Started with Our API
+
+Our API uses RESTful principles to provide a simple and consistent interface.
+Webhooks are supported for real-time event notifications.
+```
+
+The terms "API", "RESTful", and "Webhooks" will automatically be detected and linked if they're defined in your glossary.
+
+### Example 3: Using in MDX Manually
 
 ```mdx
 ---
@@ -267,6 +374,8 @@ docusaurus-plugin-glossary/
 ├── components/
 │   ├── GlossaryPage.js        # Glossary page component
 │   └── GlossaryPage.module.css # Glossary page styles
+├── remark/
+│   └── glossary-terms.js      # Remark plugin for automatic term detection
 ├── theme/
 │   └── GlossaryTerm/
 │       ├── index.js           # Term component
@@ -280,6 +389,15 @@ docusaurus-plugin-glossary/
 2. **contentLoaded**: Creates data file and adds route
 3. **getThemePath**: Exposes theme components
 4. **getPathsToWatch**: Watches glossary file for changes
+
+### Remark Plugin
+
+The remark plugin (`remark/glossary-terms.js`) automatically detects glossary terms in markdown files and replaces them with `GlossaryTerm` components. It:
+
+- Scans text nodes for glossary terms (case-insensitive, whole word matching)
+- Replaces matching terms with MDX components that show tooltips
+- Skips terms inside code blocks, links, or existing MDX components
+- Respects word boundaries to avoid partial matches
 
 ## Troubleshooting
 
@@ -300,6 +418,14 @@ docusaurus-plugin-glossary/
 - Make sure you're importing from `@theme/GlossaryTerm`
 - Try clearing cache with `npm run clear`
 - Restart dev server
+
+### Automatic term detection not working
+
+- Ensure the remark plugin is configured in `markdown.remarkPlugins` in `docusaurus.config.js`
+- Check that `glossaryPath` and `siteDir` are correctly configured in the remark plugin options
+- Verify your glossary file exists and contains terms
+- Try clearing cache with `npm run clear` and restarting the dev server
+- Note that terms inside code blocks, links, or MDX components are not processed
 
 ### Styles not applying
 

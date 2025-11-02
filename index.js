@@ -9,15 +9,23 @@ const fs = require('fs-extra');
  * - Auto-generated glossary page
  * - GlossaryTerm component for inline definitions
  * - Tooltips on hover
+ * - Automatic glossary term detection in markdown files
  *
  * @param {object} context - Docusaurus context
  * @param {object} options - Plugin options
  * @param {string} options.glossaryPath - Path to glossary JSON file (default: 'glossary/glossary.json')
  * @param {string} options.routePath - Route path for glossary page (default: '/glossary')
+ * @param {boolean} options.autoLinkTerms - Automatically link glossary terms in markdown (default: true)
  * @returns {object} Plugin object
  */
 function glossaryPlugin(context, options = {}) {
-  const { glossaryPath = 'glossary/glossary.json', routePath = '/glossary' } = options;
+  const { 
+    glossaryPath = 'glossary/glossary.json', 
+    routePath = '/glossary',
+    autoLinkTerms = true
+  } = options;
+
+  let glossaryDataCache = { terms: [] };
 
   return {
     name: 'docusaurus-plugin-glossary',
@@ -28,10 +36,12 @@ function glossaryPlugin(context, options = {}) {
 
       if (await fs.pathExists(glossaryFilePath)) {
         const glossaryData = await fs.readJson(glossaryFilePath);
+        glossaryDataCache = glossaryData;
         return glossaryData;
       }
 
       console.warn(`Glossary file not found at ${glossaryFilePath}. Using empty glossary.`);
+      glossaryDataCache = { terms: [] };
       return { terms: [] };
     },
 
@@ -40,11 +50,20 @@ function glossaryPlugin(context, options = {}) {
 
       // Create data file that can be imported by components
       const glossaryDataPath = await createData('glossary-data.json', JSON.stringify(content));
+      
+      // Create a data file for the remark plugin to access glossary terms
+      const remarkGlossaryDataPath = await createData(
+        'remark-glossary-data.json',
+        JSON.stringify({
+          terms: content.terms || [],
+          routePath: routePath,
+        })
+      );
 
       // Add glossary page route
       addRoute({
         path: routePath,
-        component: '@site/src/plugins/docusaurus-plugin-glossary/components/GlossaryPage.js',
+        component: path.join(__dirname, 'components/GlossaryPage.js'),
         exact: true,
         modules: {
           glossaryData: glossaryDataPath,
@@ -66,5 +85,33 @@ function glossaryPlugin(context, options = {}) {
     },
   };
 }
+
+// Export remark plugin factory for use in markdown configuration
+glossaryPlugin.remarkPlugin = require('./remark/glossary-terms');
+
+/**
+ * Helper function to get the configured remark plugin
+ * This can be used in docusaurus.config.js markdown configuration
+ * 
+ * @param {object} pluginOptions - Plugin options from docusaurus.config.js
+ * @param {object} context - Docusaurus context
+ * @returns {function} Configured remark plugin
+ */
+glossaryPlugin.getRemarkPlugin = function(pluginOptions, context) {
+  const { 
+    glossaryPath = 'glossary/glossary.json', 
+    routePath = '/glossary',
+    siteDir = context.siteDir
+  } = pluginOptions;
+
+  return [
+    require('./remark/glossary-terms'),
+    {
+      glossaryPath,
+      routePath,
+      siteDir,
+    }
+  ];
+};
 
 module.exports = glossaryPlugin;
