@@ -6,9 +6,15 @@
   "main": "lib/index.js",
   "exports": {
     ".": {
-      "import": "./lib/index.js"
+      "import": "./lib/index.js",
+      "require": "./lib/index.js",
+      "default": "./lib/index.js"
     },
-    "./remark/glossary-terms": "./lib/remark/glossary-terms.js"
+    "./remark/glossary-terms": {
+      "import": "./lib/remark/glossary-terms.js",
+      "require": "./lib/remark/glossary-terms.js",
+      "default": "./lib/remark/glossary-terms.js"
+    }
   },
   "files": [
     "lib/",
