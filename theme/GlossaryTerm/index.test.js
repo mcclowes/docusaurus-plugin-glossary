@@ -113,4 +113,22 @@ describe('GlossaryTerm', () => {
     const tooltip = screen.getByRole('tooltip');
     expect(tooltip).toHaveAttribute('id', 'tooltip-api');
   });
+
+  it('positions tooltip within viewport and adds placement classes', async () => {
+    const user = userEvent.setup();
+    render(<GlossaryTerm term="Edge" definition="Near the boundary of the viewport" />);
+
+    const link = screen.getByRole('link');
+    await user.hover(link);
+
+    const tooltip = screen.getByRole('tooltip');
+    expect(tooltip).toHaveClass('tooltipVisible');
+    expect(tooltip).toHaveClass('tooltipFloating');
+    // One of the placement classes should be present
+    const hasPlacement = tooltip.classList.contains('tooltipTop') || tooltip.classList.contains('tooltipBottom');
+    expect(hasPlacement).toBe(true);
+    // Inline style should include computed top/left
+    expect(tooltip.style.top).toMatch(/px$/);
+    expect(tooltip.style.left).toMatch(/px$/);
+  });
 });
