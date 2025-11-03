@@ -34,7 +34,7 @@ describe('GlossaryTerm', () => {
     const tooltip = screen.getByRole('tooltip');
     expect(tooltip).toBeInTheDocument();
     expect(tooltip).toHaveClass('tooltipVisible');
-    expect(tooltip).toHaveTextContent('API: Application Programming Interface');
+    expect(tooltip).toHaveTextContent('API Application Programming Interface');
   });
 
   it('should hide tooltip on mouse leave', async () => {
