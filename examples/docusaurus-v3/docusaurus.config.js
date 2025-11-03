@@ -1,4 +1,5 @@
 const path = require('path');
+const glossaryPlugin = require('../../');
 
 /** @type {import('@docusaurus/types').Config} */
 module.exports = {
@@ -9,23 +10,45 @@ module.exports = {
   organizationName: 'example',
   projectName: 'glossary-example-site',
   onBrokenLinks: 'throw',
-  onBrokenMarkdownLinks: 'warn',
+  markdown: {
+    hooks: {
+      onBrokenMarkdownLinks: 'warn',
+    },
+  },
   i18n: { defaultLocale: 'en', locales: ['en'] },
 
   presets: [
     [
       '@docusaurus/preset-classic',
-      /** @type {import('@docusaurus/preset-classic').Options} */ (
-        {
-          docs: {
-            sidebarPath: require.resolve('./sidebars.js'),
-          },
-          blog: false,
-          theme: {
-            customCss: require.resolve('./src/css/custom.css'),
-          },
-        }
-      ),
+      /** @type {import('@docusaurus/preset-classic').Options} */ ({
+        docs: {
+          sidebarPath: require.resolve('./sidebars.js'),
+          remarkPlugins: [
+            glossaryPlugin.getRemarkPlugin(
+              {
+                glossaryPath: 'glossary/glossary.json',
+                routePath: '/glossary',
+              },
+              { siteDir: __dirname }
+            ),
+          ],
+        },
+        blog: false,
+        pages: {
+          remarkPlugins: [
+            glossaryPlugin.getRemarkPlugin(
+              {
+                glossaryPath: 'glossary/glossary.json',
+                routePath: '/glossary',
+              },
+              { siteDir: __dirname }
+            ),
+          ],
+        },
+        theme: {
+          customCss: require.resolve('./src/css/custom.css'),
+        },
+      }),
     ],
   ],
 
@@ -41,6 +64,8 @@ module.exports = {
     ],
   ],
 
+  // remarkPlugins configured via preset (docs/pages)
+
   themeConfig: {
     navbar: {
       title: 'Glossary Example',
@@ -51,5 +76,3 @@ module.exports = {
     },
   },
 };
-
-

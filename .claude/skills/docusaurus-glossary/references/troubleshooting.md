@@ -3,6 +3,7 @@
 ## Glossary page returns 404
 
 **Solutions:**
+
 - Ensure plugin is configured in `docusaurus.config.js`
 - Check `routePath` doesn't conflict with existing routes
 - Run `npm run clear` to clear Docusaurus cache
@@ -11,6 +12,7 @@
 ## Glossary terms not showing
 
 **Solutions:**
+
 - Verify `glossary/glossary.json` exists at correct path
 - Check JSON syntax is valid
 - Ensure `terms` array is properly formatted
@@ -19,6 +21,7 @@
 ## GlossaryTerm component not found
 
 **Solutions:**
+
 - Import from `@theme/GlossaryTerm` (not a relative path)
 - Clear cache: `npm run clear`
 - Restart dev server
@@ -27,6 +30,7 @@
 ## Automatic term detection not working
 
 **Solutions:**
+
 - Ensure `autoLinkTerms` is `true` (default) in plugin config
 - Verify glossary file exists at configured `glossaryPath`
 - Check terms in content match glossary terms (case-insensitive)
@@ -37,6 +41,7 @@
 ## No tooltips appearing
 
 **Solutions:**
+
 - Confirm on Docusaurus v3 (`@docusaurus/core@^3`) and React 18
 - Check plugin is in `plugins` array and `autoLinkTerms` not disabled
 - Visit `/glossary` to verify route renders correctly
@@ -45,6 +50,7 @@
 ## Styles not applying
 
 **Solutions:**
+
 - Check for CSS conflicts in custom CSS
 - Ensure CSS modules are loading correctly
 - Clear cache and rebuild: `npm run clear && npm run build`
@@ -53,11 +59,13 @@
 ## Common Errors
 
 ### Module not found: Can't resolve '@theme/GlossaryTerm'
+
 - Plugin not installed or not in config
 - Clear `.docusaurus` cache directory
 - Restart dev server
 
 ### Invalid glossary JSON
+
 - Use JSON validator to check syntax
 - Ensure all required fields (`term`, `definition`) are present
 - Check for trailing commas (not valid in JSON)
@@ -65,7 +73,9 @@
 ## Docusaurus v3 Specific Issues
 
 ### MDX Import Issues
+
 Plugin auto-injects `import GlossaryTerm from '@theme/GlossaryTerm';` when auto-linking. If you import manually, ensure same import path.
 
 ### Opting Out of Auto-linking
+
 Set `autoLinkTerms: false` and add remark plugin manually, or only use `<GlossaryTerm />` component explicitly.

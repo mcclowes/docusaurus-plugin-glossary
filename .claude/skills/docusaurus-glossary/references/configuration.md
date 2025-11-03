@@ -2,11 +2,11 @@
 
 ## Plugin Options
 
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `glossaryPath` | string | `'glossary/glossary.json'` | Path to glossary JSON file relative to site directory |
-| `routePath` | string | `'/glossary'` | URL path for glossary page |
-| `autoLinkTerms` | boolean | `true` | Enable automatic term detection in markdown |
+| Option          | Type    | Default                    | Description                                           |
+| --------------- | ------- | -------------------------- | ----------------------------------------------------- |
+| `glossaryPath`  | string  | `'glossary/glossary.json'` | Path to glossary JSON file relative to site directory |
+| `routePath`     | string  | `'/glossary'`              | URL path for glossary page                            |
+| `autoLinkTerms` | boolean | `true`                     | Enable automatic term detection in markdown           |
 
 ## Glossary JSON Format
 
@@ -42,21 +42,27 @@ const glossaryPlugin = require('docusaurus-plugin-glossary');
 
 module.exports = {
   plugins: [
-    ['docusaurus-plugin-glossary', {
-      glossaryPath: 'glossary/glossary.json',
-      routePath: '/glossary',
-      autoLinkTerms: false
-    }]
+    [
+      'docusaurus-plugin-glossary',
+      {
+        glossaryPath: 'glossary/glossary.json',
+        routePath: '/glossary',
+        autoLinkTerms: false,
+      },
+    ],
   ],
   markdown: {
     remarkPlugins: [
-      [glossaryPlugin.remarkPlugin, {
-        glossaryPath: 'glossary/glossary.json',
-        routePath: '/glossary',
-        siteDir: process.cwd()
-      }]
-    ]
-  }
+      [
+        glossaryPlugin.remarkPlugin,
+        {
+          glossaryPath: 'glossary/glossary.json',
+          routePath: '/glossary',
+          siteDir: process.cwd(),
+        },
+      ],
+    ],
+  },
 };
 ```
 
@@ -66,10 +72,8 @@ module.exports = {
 module.exports = {
   themeConfig: {
     navbar: {
-      items: [
-        {to: '/glossary', label: 'Glossary', position: 'left'}
-      ]
-    }
-  }
+      items: [{ to: '/glossary', label: 'Glossary', position: 'left' }],
+    },
+  },
 };
 ```

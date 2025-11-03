@@ -46,7 +46,7 @@
   bottom: auto;
   transform: none;
   left: 0; /* overridden inline */
-  top: 0;  /* overridden inline */
+  top: 0; /* overridden inline */
 }
 
 /* Base arrow removed; arrows are defined per-placement to avoid inversion */

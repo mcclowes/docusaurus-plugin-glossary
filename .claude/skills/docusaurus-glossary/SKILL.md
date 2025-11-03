@@ -15,12 +15,15 @@ Configure the plugin in `docusaurus.config.js` and create a glossary JSON file:
 // docusaurus.config.js
 module.exports = {
   plugins: [
-    ['docusaurus-plugin-glossary', {
-      glossaryPath: 'glossary/glossary.json',
-      routePath: '/glossary',
-      autoLinkTerms: true  // Auto-detects terms in markdown
-    }]
-  ]
+    [
+      'docusaurus-plugin-glossary',
+      {
+        glossaryPath: 'glossary/glossary.json',
+        routePath: '/glossary',
+        autoLinkTerms: true, // Auto-detects terms in markdown
+      },
+    ],
+  ],
 };
 ```
 
@@ -44,6 +47,7 @@ If terms aren't linking: verify glossaryPath exists, check autoLinkTerms is true
 ## Reference Files
 
 For detailed documentation, see:
+
 - [configuration.md](references/configuration.md) - Plugin options and setup
 - [usage.md](references/usage.md) - Using terms and components
 - [troubleshooting.md](references/troubleshooting.md) - Common issues and fixes

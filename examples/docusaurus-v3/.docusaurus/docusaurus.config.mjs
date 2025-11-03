@@ -11,6 +11,23 @@ export default {
   "organizationName": "example",
   "projectName": "glossary-example-site",
   "onBrokenLinks": "throw",
+  "markdown": {
+    "hooks": {
+      "onBrokenMarkdownLinks": "warn",
+      "onBrokenMarkdownImages": "throw"
+    },
+    "format": "mdx",
+    "mermaid": false,
+    "emoji": true,
+    "mdx1Compat": {
+      "comments": true,
+      "admonitions": true,
+      "headingIds": true
+    },
+    "anchors": {
+      "maintainCase": false
+    }
+  },
   "i18n": {
     "defaultLocale": "en",
     "locales": [
@@ -24,9 +41,31 @@ export default {
       "@docusaurus/preset-classic",
       {
         "docs": {
-          "sidebarPath": "/Users/mcclowes/Development/mcclowes/docusaurus-plugin-glossary/examples/docusaurus-v3/sidebars.js"
+          "sidebarPath": "/Users/mcclowes/Development/mcclowes/docusaurus-plugin-glossary/examples/docusaurus-v3/sidebars.js",
+          "remarkPlugins": [
+            [
+              null,
+              {
+                "glossaryPath": "glossary/glossary.json",
+                "routePath": "/glossary",
+                "siteDir": "/Users/mcclowes/Development/mcclowes/docusaurus-plugin-glossary/examples/docusaurus-v3"
+              }
+            ]
+          ]
         },
         "blog": false,
+        "pages": {
+          "remarkPlugins": [
+            [
+              null,
+              {
+                "glossaryPath": "glossary/glossary.json",
+                "routePath": "/glossary",
+                "siteDir": "/Users/mcclowes/Development/mcclowes/docusaurus-plugin-glossary/examples/docusaurus-v3"
+              }
+            ]
+          ]
+        },
         "theme": {
           "customCss": "/Users/mcclowes/Development/mcclowes/docusaurus-plugin-glossary/examples/docusaurus-v3/src/css/custom.css"
         }
@@ -260,22 +299,5 @@ export default {
   "clientModules": [],
   "tagline": "",
   "titleDelimiter": "|",
-  "noIndex": false,
-  "markdown": {
-    "format": "mdx",
-    "mermaid": false,
-    "emoji": true,
-    "mdx1Compat": {
-      "comments": true,
-      "admonitions": true,
-      "headingIds": true
-    },
-    "anchors": {
-      "maintainCase": false
-    },
-    "hooks": {
-      "onBrokenMarkdownLinks": "warn",
-      "onBrokenMarkdownImages": "throw"
-    }
-  }
+  "noIndex": false
 };

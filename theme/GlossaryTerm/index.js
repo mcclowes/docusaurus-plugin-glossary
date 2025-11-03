@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useRef, useEffect, useCallback } from 'react';
-import {usePluginData} from '@docusaurus/useGlobalData';
+import { usePluginData } from '@docusaurus/useGlobalData';
 import styles from './styles.module.css';
 
 /**
@@ -50,7 +50,10 @@ export default function GlossaryTerm({ term, definition, routePath = '/glossary'
     // Center horizontally on the wrapper, then clamp within viewport with margin
     const horizontalMargin = 8;
     let left = wrapperRect.left + wrapperRect.width / 2 - tooltipRect.width / 2;
-    left = Math.max(horizontalMargin, Math.min(left, viewportWidth - tooltipRect.width - horizontalMargin));
+    left = Math.max(
+      horizontalMargin,
+      Math.min(left, viewportWidth - tooltipRect.width - horizontalMargin)
+    );
 
     setPlacement(nextPlacement);
     setTooltipStyle({ top: Math.max(4, top), left });
@@ -77,7 +80,7 @@ export default function GlossaryTerm({ term, definition, routePath = '/glossary'
     }
     const terms = (pluginData && pluginData.terms) || [];
     const found = terms.find(
-      (t) => typeof t.term === 'string' && t.term.toLowerCase() === String(term).toLowerCase()
+      t => typeof t.term === 'string' && t.term.toLowerCase() === String(term).toLowerCase()
     );
     return found && found.definition ? found.definition : undefined;
   }, [definition, pluginData, term]);
@@ -113,7 +116,11 @@ export default function GlossaryTerm({ term, definition, routePath = '/glossary'
             `${styles.tooltipFloating}`
           }
           role="tooltip"
-          style={showTooltip && tooltipStyle ? { top: `${tooltipStyle.top}px`, left: `${tooltipStyle.left}px` } : undefined}
+          style={
+            showTooltip && tooltipStyle
+              ? { top: `${tooltipStyle.top}px`, left: `${tooltipStyle.left}px` }
+              : undefined
+          }
         >
           <strong>{term}:</strong> {effectiveDefinition}
         </span>

@@ -18,11 +18,13 @@ A comprehensive Docusaurus plugin that provides glossary functionality with an a
 ## Quick Start
 
 1. **Install the plugin:**
+
    ```bash
    npm install docusaurus-plugin-glossary
    ```
 
 2. **Add to your `docusaurus.config.js`:**
+
    ```javascript
    module.exports = {
      // ... other config
@@ -39,10 +41,11 @@ A comprehensive Docusaurus plugin that provides glossary functionality with an a
      // ... other config
    };
    ```
-   
+
    **That’s it!** On Docusaurus v3, the remark plugin is automatically configured via the plugin’s `configureMarkdown` hook — no manual `markdown.remarkPlugins` setup needed.
 
 3. **Create your glossary file at `glossary/glossary.json`:**
+
    ```json
    {
      "description": "A collection of technical terms and their definitions",
@@ -64,11 +67,12 @@ A comprehensive Docusaurus plugin that provides glossary functionality with an a
    ```
 
 4. **Start your dev server:**
+
    ```bash
    npm run start
    ```
 
-5. **That's it!** 
+5. **That's it!**
    - Visit `/glossary` to see your glossary page
    - Write markdown normally - terms will automatically be linked with tooltips
    - Use `<GlossaryTerm>` component in MDX for manual control
@@ -108,10 +112,12 @@ Create a JSON file at `glossary/glossary.json` (or your configured path) in your
 ```
 
 **Required fields:**
+
 - `term` (string): The glossary term name
 - `definition` (string): The term's definition
 
 **Optional fields:**
+
 - `abbreviation` (string): The full form if the term is an abbreviation
 - `relatedTerms` (string[]): Array of related term names that link to other glossary entries
 - `id` (string): Custom ID for linking (auto-generated from term name if not provided)
@@ -173,10 +179,10 @@ module.exports = {
 ## Docusaurus v3 Notes and Troubleshooting
 
 - **MDX imports**: The plugin injects `import GlossaryTerm from '@theme/GlossaryTerm';` automatically when it auto-links a term. If you’re writing MDX manually, you can also import and use it yourself:
-  
+
   ```mdx
   import GlossaryTerm from '@theme/GlossaryTerm';
-  
+
   Our <GlossaryTerm term="API" /> uses <GlossaryTerm term="REST">RESTful</GlossaryTerm> principles.
   ```
 
@@ -201,12 +207,14 @@ This project supports webhooks for real-time notifications.
 ```
 
 Terms like "API", "REST", and "webhooks" will automatically be:
+
 - Detected if they're defined in your glossary
 - Styled with a dotted underline
 - Display a tooltip with the definition on hover
 - Link to the full glossary page entry
 
 **Limitations:**
+
 - Only whole words are matched (respects word boundaries)
 - Terms inside code blocks, links, or existing MDX components are **not** processed
 - Matching is case-insensitive
@@ -228,6 +236,7 @@ Our <GlossaryTerm term="API" definition="Application Programming Interface">REST
 ```
 
 **Component props:**
+
 - `term` (required): The term name (used to look up definition from glossary)
 - `definition` (optional): Override the definition from the glossary file
 - `children` (optional): Custom text to display (defaults to term name)
@@ -237,6 +246,7 @@ Our <GlossaryTerm term="API" definition="Application Programming Interface">REST
 The glossary page is automatically available at `/glossary` (or your configured `routePath`).
 
 **Features:**
+
 - Alphabetical grouping with letter navigation
 - Real-time search across terms and definitions
 - Clickable related terms
@@ -252,7 +262,7 @@ module.exports = {
   themeConfig: {
     navbar: {
       items: [
-        {to: '/glossary', label: 'Glossary', position: 'left'},
+        { to: '/glossary', label: 'Glossary', position: 'left' },
         // ... other items
       ],
     },
@@ -262,11 +272,11 @@ module.exports = {
 
 ## Configuration Options
 
-| Option         | Type    | Default                    | Description                                           |
-| -------------- | ------- | -------------------------- | ----------------------------------------------------- |
-| `glossaryPath` | string  | `'glossary/glossary.json'` | Path to glossary JSON file relative to site directory |
-| `routePath`    | string  | `'/glossary'`              | URL path for glossary page                            |
-| `autoLinkTerms`| boolean | `true`                     | Enable automatic term detection in markdown (requires remark plugin configuration) |
+| Option          | Type    | Default                    | Description                                                                        |
+| --------------- | ------- | -------------------------- | ---------------------------------------------------------------------------------- |
+| `glossaryPath`  | string  | `'glossary/glossary.json'` | Path to glossary JSON file relative to site directory                              |
+| `routePath`     | string  | `'/glossary'`              | URL path for glossary page                                                         |
+| `autoLinkTerms` | boolean | `true`                     | Enable automatic term detection in markdown (requires remark plugin configuration) |
 
 ## Customization
 
@@ -449,7 +459,7 @@ MIT
 
 ## Contributing
 
-Contributions are welcome! Please open an issue or submit a pull request.
+Contributions are welcome! Please see our [Contributing Guide](CONTRIBUTING.md) for details on how to get started.
 
 ## Credits
 

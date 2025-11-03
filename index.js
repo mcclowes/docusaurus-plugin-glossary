@@ -19,10 +19,10 @@ const fs = require('fs-extra');
  * @returns {object} Plugin object
  */
 function glossaryPlugin(context, options = {}) {
-  const { 
-    glossaryPath = 'glossary/glossary.json', 
+  const {
+    glossaryPath = 'glossary/glossary.json',
     routePath = '/glossary',
-    autoLinkTerms = true
+    autoLinkTerms = true,
   } = options;
 
   let glossaryDataCache = { terms: [] };
@@ -40,16 +40,14 @@ function glossaryPlugin(context, options = {}) {
         const remarkPlugin = require('./remark/glossary-terms');
 
         // Check if the remark plugin is already configured
-        const isAlreadyConfigured = markdownConfig.remarkPlugins.some(
-          (plugin) => {
-            if (Array.isArray(plugin) && plugin[0]) {
-              // Check if it's our remark plugin by comparing the function reference
-              return plugin[0] === remarkPlugin;
-            }
-            // Also check if it's directly the remark plugin function
-            return plugin === remarkPlugin;
+        const isAlreadyConfigured = markdownConfig.remarkPlugins.some(plugin => {
+          if (Array.isArray(plugin) && plugin[0]) {
+            // Check if it's our remark plugin by comparing the function reference
+            return plugin[0] === remarkPlugin;
           }
-        );
+          // Also check if it's directly the remark plugin function
+          return plugin === remarkPlugin;
+        });
 
         // Only add if not already configured
         if (!isAlreadyConfigured) {
@@ -59,7 +57,7 @@ function glossaryPlugin(context, options = {}) {
               glossaryPath,
               routePath,
               siteDir: context.siteDir,
-            }
+            },
           ]);
         }
       }
@@ -85,7 +83,7 @@ function glossaryPlugin(context, options = {}) {
 
       // Create data file that can be imported by components
       const glossaryDataPath = await createData('glossary-data.json', JSON.stringify(content));
-      
+
       // Create a data file for the remark plugin to access glossary terms
       const remarkGlossaryDataPath = await createData(
         'remark-glossary-data.json',
@@ -133,16 +131,16 @@ glossaryPlugin.remarkPlugin = require('./remark/glossary-terms');
 /**
  * Helper function to get the configured remark plugin
  * This can be used in docusaurus.config.js markdown configuration
- * 
+ *
  * @param {object} pluginOptions - Plugin options from docusaurus.config.js
  * @param {object} context - Docusaurus context
  * @returns {function} Configured remark plugin
  */
-glossaryPlugin.getRemarkPlugin = function(pluginOptions, context) {
-  const { 
-    glossaryPath = 'glossary/glossary.json', 
+glossaryPlugin.getRemarkPlugin = function (pluginOptions, context) {
+  const {
+    glossaryPath = 'glossary/glossary.json',
     routePath = '/glossary',
-    siteDir = context.siteDir
+    siteDir = context.siteDir,
   } = pluginOptions;
 
   return [
@@ -151,7 +149,7 @@ glossaryPlugin.getRemarkPlugin = function(pluginOptions, context) {
       glossaryPath,
       routePath,
       siteDir,
-    }
+    },
   ];
 };
 

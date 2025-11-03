@@ -1,10 +1,12 @@
-const visit = require('unist-util-visit');
+// Support both CJS and ESM exports of unist-util-visit
+let visit = require('unist-util-visit');
+visit = visit && visit.visit ? visit.visit : visit;
 const path = require('path');
 const fs = require('fs');
 
 /**
  * Creates a remark plugin that automatically detects and replaces glossary terms in markdown
- * 
+ *
  * @param {object} options - Plugin options
  * @param {Array} options.terms - Array of glossary term objects with {term, definition}
  * @param {string} options.glossaryPath - Path to glossary JSON file (optional, if terms not provided)
@@ -12,11 +14,11 @@ const fs = require('fs');
  * @param {string} options.siteDir - Docusaurus site directory (required if using glossaryPath)
  * @returns {function} Remark plugin function
  */
-function remarkGlossaryTerms({ 
-  terms = [], 
+function remarkGlossaryTerms({
+  terms = [],
   glossaryPath = null,
   routePath = '/glossary',
-  siteDir = null
+  siteDir = null,
 } = {}) {
   let glossaryTerms = terms;
 
@@ -44,13 +46,11 @@ function remarkGlossaryTerms({
 
   // Sort terms by length (longest first) to avoid partial matches
   // e.g., "Application Programming Interface" should match before "API"
-  const sortedTerms = Array.from(termMap.entries()).sort(
-    (a, b) => b[0].length - a[0].length
-  );
+  const sortedTerms = Array.from(termMap.entries()).sort((a, b) => b[0].length - a[0].length);
 
   // If no terms, return a no-op transformer
   if (sortedTerms.length === 0) {
-    return (tree) => tree;
+    return tree => tree;
   }
 
   /**
@@ -71,29 +71,47 @@ function remarkGlossaryTerms({
     for (const [lowerTerm, termObj] of sortedTerms) {
       const term = termObj.term;
       let searchIndex = 0;
-      
+
       while (searchIndex < textLower.length) {
         const index = textLower.indexOf(lowerTerm, searchIndex);
         if (index === -1) break;
 
-        // Check if it's a whole word match
+        // Check if it's a whole word match, with simple plural tolerance ('s' or 'es')
         const beforeChar = index > 0 ? textLower[index - 1] : ' ';
-        const afterChar = index + lowerTerm.length < textLower.length 
-          ? textLower[index + lowerTerm.length] 
+        const afterIndex = index + lowerTerm.length;
+        const afterChar = afterIndex < textLower.length 
+          ? textLower[afterIndex] 
           : ' ';
         
-        // Word boundary check (alphanumeric characters)
-        const isWordBoundary = 
-          !/\w/.test(beforeChar) && !/\w/.test(afterChar);
+        let matchLength = term.length;
+        let isWordBoundary = !/\w/.test(beforeChar) && !/\w/.test(afterChar);
+
+        // Allow trailing 's' plural (e.g., webhook -> webhooks)
+        if (!isWordBoundary && afterChar === 's') {
+          const nextChar = afterIndex + 1 < textLower.length ? textLower[afterIndex + 1] : ' ';
+          if (!/\w/.test(nextChar)) {
+            isWordBoundary = true;
+            matchLength = term.length + 1;
+          }
+        }
+
+        // Allow trailing 'es' plural (e.g., API -> APIs, box -> boxes)
+        if (!isWordBoundary && afterChar === 'e' && afterIndex + 1 < textLower.length && textLower[afterIndex + 1] === 's') {
+          const nextChar = afterIndex + 2 < textLower.length ? textLower[afterIndex + 2] : ' ';
+          if (!/\w/.test(nextChar)) {
+            isWordBoundary = true;
+            matchLength = term.length + 2;
+          }
+        }
 
         if (isWordBoundary) {
           matches.push({
             index,
-            length: term.length,
+            length: matchLength,
             term: term,
             termObj: termObj,
             // Store original case from the text
-            originalText: text.substring(index, index + term.length)
+            originalText: text.substring(index, index + matchLength)
           });
         }
 
@@ -120,7 +138,7 @@ function remarkGlossaryTerms({
       if (match.index > lastIndex) {
         result.push({
           type: 'text',
-          value: text.substring(lastIndex, match.index)
+          value: text.substring(lastIndex, match.index),
         });
       }
 
@@ -132,25 +150,25 @@ function remarkGlossaryTerms({
           {
             type: 'mdxJsxAttribute',
             name: 'term',
-            value: match.termObj.term
+            value: match.termObj.term,
           },
           {
             type: 'mdxJsxAttribute',
             name: 'definition',
-            value: match.termObj.definition || ''
+            value: match.termObj.definition || '',
           },
           {
             type: 'mdxJsxAttribute',
             name: 'routePath',
-            value: routePath
-          }
+            value: routePath,
+          },
         ],
         children: [
           {
             type: 'text',
-            value: match.originalText
-          }
-        ]
+            value: match.originalText,
+          },
+        ],
       });
 
       lastIndex = match.index + match.length;
@@ -160,14 +178,14 @@ function remarkGlossaryTerms({
     if (lastIndex < text.length) {
       result.push({
         type: 'text',
-        value: text.substring(lastIndex)
+        value: text.substring(lastIndex),
       });
     }
 
     return result.length > 0 ? result : [{ type: 'text', value: text }];
   }
 
-  return (tree) => {
+  return tree => {
     let usedGlossaryTerm = false;
     visit(tree, 'text', (node, index, parent) => {
       // Skip text nodes inside code blocks, links, or existing MDX components
@@ -185,8 +203,10 @@ function remarkGlossaryTerms({
       const replacements = replaceTermsInText(node.value);
 
       // If we have replacements, replace the single text node with multiple nodes
-      if (replacements.length > 1 || 
-          (replacements.length === 1 && replacements[0].type !== 'text')) {
+      if (
+        replacements.length > 1 ||
+        (replacements.length === 1 && replacements[0].type !== 'text')
+      ) {
         // Convert to text elements for paragraph context if needed
         const newNodes = replacements.map(replacement => {
           if (replacement.type === 'mdxJsxFlowElement') {
@@ -196,7 +216,7 @@ function remarkGlossaryTerms({
                 type: 'mdxJsxTextElement',
                 name: replacement.name,
                 attributes: replacement.attributes,
-                children: replacement.children
+                children: replacement.children,
               };
             }
           }
@@ -217,9 +237,10 @@ function remarkGlossaryTerms({
 
     // Inject MDX import for GlossaryTerm if we used it anywhere in this file
     if (usedGlossaryTerm) {
+      // Create import node matching MDX expectations (empty value + estree)
       const importNode = {
         type: 'mdxjsEsm',
-        value: "import GlossaryTerm from '@theme/GlossaryTerm';",
+        value: '',
         data: {
           estree: {
             type: 'Program',
@@ -230,26 +251,51 @@ function remarkGlossaryTerms({
                 specifiers: [
                   {
                     type: 'ImportDefaultSpecifier',
-                    local: { type: 'Identifier', name: 'GlossaryTerm' }
-                  }
+                    local: { type: 'Identifier', name: 'GlossaryTerm' },
+                  },
                 ],
-                source: { type: 'Literal', value: '@theme/GlossaryTerm' }
-              }
-            ]
-          }
-        }
+                source: { type: 'Literal', value: '@theme/GlossaryTerm' },
+              },
+            ],
+          },
+        },
       };
 
       // Avoid duplicate imports if already present
-      const hasExistingImport = Array.isArray(tree.children) && tree.children.some(
-        (n) => n.type === 'mdxjsEsm' && typeof n.value === 'string' && n.value.includes("@theme/GlossaryTerm")
-      );
+      const hasExistingImport =
+        Array.isArray(tree.children) &&
+        tree.children.some(n => {
+          if (n.type !== 'mdxjsEsm') return false;
+          // Check value string (for older MDX format)
+          if (typeof n.value === 'string' && n.value.includes('@theme/GlossaryTerm')) {
+            return true;
+          }
+          // Check estree data (for newer MDX format)
+          if (n.data?.estree?.body) {
+            return n.data.estree.body.some(
+              stmt =>
+                stmt.type === 'ImportDeclaration' &&
+                stmt.source?.value === '@theme/GlossaryTerm'
+            );
+          }
+          return false;
+        });
+      
       if (!hasExistingImport) {
+        // Place import at the very beginning of the file (before all other nodes)
+        // This ensures it's available when MDX compiles the JSX elements
+        if (!Array.isArray(tree.children)) {
+          tree.children = [];
+        }
+        // Insert at the very beginning (index 0) to ensure it's processed first
         tree.children.unshift(importNode);
+        // Debug: verify import was added (remove in production)
+        if (process.env.NODE_ENV !== 'production') {
+          console.log('[glossary-plugin] Injected GlossaryTerm import');
+        }
       }
     }
   };
 }
 
 module.exports = remarkGlossaryTerms;
-

@@ -125,7 +125,8 @@ describe('GlossaryTerm', () => {
     expect(tooltip).toHaveClass('tooltipVisible');
     expect(tooltip).toHaveClass('tooltipFloating');
     // One of the placement classes should be present
-    const hasPlacement = tooltip.classList.contains('tooltipTop') || tooltip.classList.contains('tooltipBottom');
+    const hasPlacement =
+      tooltip.classList.contains('tooltipTop') || tooltip.classList.contains('tooltipBottom');
     expect(hasPlacement).toBe(true);
     // Inline style should include computed top/left
     expect(tooltip.style.top).toMatch(/px$/);
