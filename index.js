@@ -9,13 +9,50 @@ const fs = require('fs-extra');
  * - Auto-generated glossary page
  * - GlossaryTerm component for inline definitions
  * - Tooltips on hover
- * - Automatic glossary term detection in markdown files
+ * - Automatic glossary term detection in markdown files (requires manual remark plugin configuration)
+ *
+ * IMPORTANT: To enable auto-linking of glossary terms, you must manually add the remark plugin
+ * to your docusaurus.config.js using the getRemarkPlugin helper:
+ *
+ * Example:
+ * ```javascript
+ * const glossaryPlugin = require('docusaurus-plugin-glossary');
+ *
+ * module.exports = {
+ *   presets: [
+ *     ['@docusaurus/preset-classic', {
+ *       docs: {
+ *         remarkPlugins: [
+ *           glossaryPlugin.getRemarkPlugin({
+ *             glossaryPath: 'glossary/glossary.json',
+ *             routePath: '/glossary',
+ *           }, { siteDir: __dirname }),
+ *         ],
+ *       },
+ *       pages: {
+ *         remarkPlugins: [
+ *           glossaryPlugin.getRemarkPlugin({
+ *             glossaryPath: 'glossary/glossary.json',
+ *             routePath: '/glossary',
+ *           }, { siteDir: __dirname }),
+ *         ],
+ *       },
+ *     }],
+ *   ],
+ *   plugins: [
+ *     ['docusaurus-plugin-glossary', {
+ *       glossaryPath: 'glossary/glossary.json',
+ *       routePath: '/glossary',
+ *     }],
+ *   ],
+ * };
+ * ```
  *
  * @param {object} context - Docusaurus context
  * @param {object} options - Plugin options
  * @param {string} options.glossaryPath - Path to glossary JSON file (default: 'glossary/glossary.json')
  * @param {string} options.routePath - Route path for glossary page (default: '/glossary')
- * @param {boolean} options.autoLinkTerms - Automatically link glossary terms in markdown (default: true)
+ * @param {boolean} options.autoLinkTerms - Legacy option, kept for compatibility but no longer used (configure remark plugin manually instead)
  * @returns {object} Plugin object
  */
 function glossaryPlugin(context, options = {}) {
@@ -29,39 +66,6 @@ function glossaryPlugin(context, options = {}) {
 
   return {
     name: 'docusaurus-plugin-glossary',
-
-    configureMarkdown(markdownConfig) {
-      // Automatically configure the remark plugin if autoLinkTerms is enabled
-      if (autoLinkTerms) {
-        if (!markdownConfig.remarkPlugins) {
-          markdownConfig.remarkPlugins = [];
-        }
-
-        const remarkPlugin = require('./remark/glossary-terms');
-
-        // Check if the remark plugin is already configured
-        const isAlreadyConfigured = markdownConfig.remarkPlugins.some(plugin => {
-          if (Array.isArray(plugin) && plugin[0]) {
-            // Check if it's our remark plugin by comparing the function reference
-            return plugin[0] === remarkPlugin;
-          }
-          // Also check if it's directly the remark plugin function
-          return plugin === remarkPlugin;
-        });
-
-        // Only add if not already configured
-        if (!isAlreadyConfigured) {
-          markdownConfig.remarkPlugins.push([
-            remarkPlugin,
-            {
-              glossaryPath,
-              routePath,
-              siteDir: context.siteDir,
-            },
-          ]);
-        }
-      }
-    },
 
     async loadContent() {
       // Load glossary terms from JSON file

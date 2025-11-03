@@ -2,7 +2,7 @@
 
 A comprehensive Docusaurus plugin that provides glossary functionality with an auto-generated glossary page, searchable terms, and inline term tooltips.
 
-> Compatibility: Fully compatible with Docusaurus v3 (MDX v3). If you were on a v2-era fork, please upgrade to the latest 1.x release of this plugin. No manual MDX pipeline wiring is required when `autoLinkTerms` is enabled (default).
+> Compatibility: Fully compatible with Docusaurus v3 (MDX v3). If you were on a v2-era fork, please upgrade to the latest 1.x release of this plugin.
 
 ## Features
 
@@ -26,15 +26,47 @@ A comprehensive Docusaurus plugin that provides glossary functionality with an a
 2. **Add to your `docusaurus.config.js`:**
 
    ```javascript
+   const glossaryPlugin = require('docusaurus-plugin-glossary');
+
    module.exports = {
      // ... other config
+     presets: [
+       [
+         '@docusaurus/preset-classic',
+         {
+           docs: {
+             // Add the remark plugin to enable auto-linking in docs
+             remarkPlugins: [
+               glossaryPlugin.getRemarkPlugin(
+                 {
+                   glossaryPath: 'glossary/glossary.json',
+                   routePath: '/glossary',
+                 },
+                 { siteDir: __dirname }
+               ),
+             ],
+           },
+           pages: {
+             // Add the remark plugin to enable auto-linking in pages
+             remarkPlugins: [
+               glossaryPlugin.getRemarkPlugin(
+                 {
+                   glossaryPath: 'glossary/glossary.json',
+                   routePath: '/glossary',
+                 },
+                 { siteDir: __dirname }
+               ),
+             ],
+           },
+         },
+       ],
+     ],
      plugins: [
        [
          'docusaurus-plugin-glossary',
          {
            glossaryPath: 'glossary/glossary.json', // Path to your glossary file
            routePath: '/glossary', // URL path for glossary page
-           autoLinkTerms: true, // Automatically link terms (default: true)
          },
        ],
      ],
@@ -42,7 +74,7 @@ A comprehensive Docusaurus plugin that provides glossary functionality with an a
    };
    ```
 
-   **That’s it!** On Docusaurus v3, the remark plugin is automatically configured via the plugin’s `configureMarkdown` hook — no manual `markdown.remarkPlugins` setup needed.
+   **Note:** You need to configure the remark plugin in both the plugin AND the preset (for docs/pages) to enable auto-linking of terms.
 
 3. **Create your glossary file at `glossary/glossary.json`:**
 
@@ -127,52 +159,90 @@ Create a JSON file at `glossary/glossary.json` (or your configured path) in your
 Add the plugin to your `docusaurus.config.js`:
 
 ```javascript
+const glossaryPlugin = require('docusaurus-plugin-glossary');
+
 module.exports = {
+  presets: [
+    [
+      '@docusaurus/preset-classic',
+      {
+        docs: {
+          // Add the remark plugin to enable auto-linking in docs
+          remarkPlugins: [
+            glossaryPlugin.getRemarkPlugin(
+              {
+                glossaryPath: 'glossary/glossary.json',
+                routePath: '/glossary',
+              },
+              { siteDir: __dirname }
+            ),
+          ],
+        },
+        pages: {
+          // Add the remark plugin to enable auto-linking in pages
+          remarkPlugins: [
+            glossaryPlugin.getRemarkPlugin(
+              {
+                glossaryPath: 'glossary/glossary.json',
+                routePath: '/glossary',
+              },
+              { siteDir: __dirname }
+            ),
+          ],
+        },
+      },
+    ],
+  ],
   plugins: [
     [
       'docusaurus-plugin-glossary',
       {
         glossaryPath: 'glossary/glossary.json', // Path to your glossary file
         routePath: '/glossary', // URL path for the glossary page
-        autoLinkTerms: true, // Automatically detect and link terms (default: true)
       },
     ],
   ],
 };
 ```
 
-**Automatic Configuration:** The remark plugin is automatically configured when `autoLinkTerms` is `true` (the default). You don't need to manually configure `markdown.remarkPlugins`!
+**Required Configuration:** To enable automatic term detection and linking, you must configure the remark plugin in your preset (as shown above). The plugin provides a `getRemarkPlugin` helper to make this easier.
 
-**Advanced: Manual Remark Plugin Configuration**
+**Alternative: Using remarkPlugin directly**
 
-If you need more control or want to disable automatic detection, you can manually configure the remark plugin:
+You can also use the `remarkPlugin` export directly if you prefer:
 
 ```javascript
 const glossaryPlugin = require('docusaurus-plugin-glossary');
 
 module.exports = {
+  presets: [
+    [
+      '@docusaurus/preset-classic',
+      {
+        docs: {
+          remarkPlugins: [
+            [
+              glossaryPlugin.remarkPlugin,
+              {
+                glossaryPath: 'glossary/glossary.json',
+                routePath: '/glossary',
+                siteDir: __dirname,
+              },
+            ],
+          ],
+        },
+      },
+    ],
+  ],
   plugins: [
     [
       'docusaurus-plugin-glossary',
       {
         glossaryPath: 'glossary/glossary.json',
         routePath: '/glossary',
-        autoLinkTerms: false, // Disable automatic configuration
       },
     ],
   ],
-  markdown: {
-    remarkPlugins: [
-      [
-        glossaryPlugin.remarkPlugin,
-        {
-          glossaryPath: 'glossary/glossary.json',
-          routePath: '/glossary',
-          siteDir: process.cwd(),
-        },
-      ],
-    ],
-  },
 };
 ```
 
@@ -187,12 +257,13 @@ module.exports = {
   ```
 
 - **No tooltips or no auto-linking?**
-  - Confirm you’re on `@docusaurus/core@^3` and `react@^18`.
-  - Ensure the plugin is listed in `plugins` and `autoLinkTerms` is not disabled.
+  - Confirm you're on `@docusaurus/core@^3` and `react@^18`.
+  - Ensure the plugin is listed in `plugins` AND the remark plugin is configured in your preset (see Step 2 above).
   - Visit `/glossary`. If the page or route fails to render, verify your `glossaryPath` file exists and contains a `terms` array.
+  - Clear your Docusaurus cache with `npm run clear` and restart your dev server.
   - If you previously used a local patch for `1.0.0`, remove it when using `1.0.2+`; the plugin bundles the v3-compatible theme and remark integration.
 
-- **Opting out of auto-linking**: set `autoLinkTerms: false` and add the remark plugin manually (see above), or only use the `<GlossaryTerm />` component where you want explicit control.
+- **Opting out of auto-linking**: Simply don't configure the remark plugin in your preset. You can still use the `<GlossaryTerm />` component manually where you want explicit control.
 
 ### Step 3: Use Glossary Terms in Your Content
 
@@ -272,11 +343,10 @@ module.exports = {
 
 ## Configuration Options
 
-| Option          | Type    | Default                    | Description                                                                        |
-| --------------- | ------- | -------------------------- | ---------------------------------------------------------------------------------- |
-| `glossaryPath`  | string  | `'glossary/glossary.json'` | Path to glossary JSON file relative to site directory                              |
-| `routePath`     | string  | `'/glossary'`              | URL path for glossary page                                                         |
-| `autoLinkTerms` | boolean | `true`                     | Enable automatic term detection in markdown (requires remark plugin configuration) |
+| Option         | Type   | Default                    | Description                                               |
+| -------------- | ------ | -------------------------- | --------------------------------------------------------- |
+| `glossaryPath` | string | `'glossary/glossary.json'` | Path to glossary JSON file relative to site directory     |
+| `routePath`    | string | `'/glossary'`              | URL path for glossary page                                |
 
 ## Customization
 
@@ -439,12 +509,12 @@ The remark plugin (`remark/glossary-terms.js`) automatically detects glossary te
 
 ### Automatic term detection not working
 
-- Ensure `autoLinkTerms` is `true` (the default) in your plugin configuration
-- The remark plugin is automatically configured, so you don't need to manually add it to `markdown.remarkPlugins`
+- **IMPORTANT**: Ensure you have configured the remark plugin in your preset (see Configuration section above)
 - Verify your glossary file exists at the configured `glossaryPath` and contains terms
 - Check that terms in your content match the terms in your glossary (matching is case-insensitive but respects word boundaries)
 - Try clearing cache with `npm run clear` and restarting the dev server
 - Note that terms inside code blocks, links, or MDX components are not processed
+- Make sure you've added the remark plugin to both `docs` and `pages` sections if you want auto-linking in both
 - If you've manually configured the remark plugin, ensure `siteDir` points to the correct Docusaurus site directory
 
 ### Styles not applying
