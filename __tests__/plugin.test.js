@@ -85,6 +85,7 @@ describe('glossaryPlugin', () => {
       actions: {
         createData: mockCreateData,
         addRoute: mockAddRoute,
+        setGlobalData: jest.fn(),
       },
     });
 
@@ -111,6 +112,7 @@ describe('glossaryPlugin', () => {
       actions: {
         createData: jest.fn(() => Promise.resolve('path/to/data.json')),
         addRoute: mockAddRoute,
+        setGlobalData: jest.fn(),
       },
     });
 
