@@ -237,10 +237,11 @@ function remarkGlossaryTerms({
 
     // Inject MDX import for GlossaryTerm if we used it anywhere in this file
     if (usedGlossaryTerm) {
-      // Create import node matching MDX expectations (empty value + estree)
+      // Create import node matching MDX v3 expectations
+      // Both 'value' (the import string) and 'data.estree' (the parsed AST) are required
       const importNode = {
         type: 'mdxjsEsm',
-        value: '',
+        value: "import GlossaryTerm from '@theme/GlossaryTerm'",
         data: {
           estree: {
             type: 'Program',
@@ -254,7 +255,11 @@ function remarkGlossaryTerms({
                     local: { type: 'Identifier', name: 'GlossaryTerm' },
                   },
                 ],
-                source: { type: 'Literal', value: '@theme/GlossaryTerm' },
+                source: {
+                  type: 'Literal',
+                  value: '@theme/GlossaryTerm',
+                  raw: "'@theme/GlossaryTerm'"
+                },
               },
             ],
           },
