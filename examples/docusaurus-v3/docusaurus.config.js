@@ -62,6 +62,7 @@ module.exports = {
         autoLinkTerms: true,
       },
     ],
+    require.resolve('./plugins/mdx-components'),
   ],
 
   // remarkPlugins configured via preset (docs/pages)

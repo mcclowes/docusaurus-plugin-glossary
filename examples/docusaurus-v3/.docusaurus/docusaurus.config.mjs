@@ -80,7 +80,8 @@ export default {
         "routePath": "/glossary",
         "autoLinkTerms": true
       }
-    ]
+    ],
+    "/Users/mcclowes/Development/mcclowes/docusaurus-plugin-glossary/examples/docusaurus-v3/plugins/mdx-components/index.js"
   ],
   "themeConfig": {
     "navbar": {
