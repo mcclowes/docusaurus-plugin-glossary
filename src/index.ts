@@ -13,14 +13,31 @@ function getDirname(): string {
     return '';
   }
 
-  // Check if import.meta.url is available
-  if (typeof import.meta.url === 'undefined') {
-    return '';
-  }
-
   // Use cached value if available
   if ((globalThis as any).__dirnameCache) {
     return (globalThis as any).__dirnameCache;
+  }
+
+  // In Jest/Babel transformed environment, __filename is available
+  // @ts-ignore - __filename is available after Babel transforms ES modules to CommonJS
+  if (typeof __filename !== 'undefined') {
+    const computedDirname = path.dirname(__filename);
+    (globalThis as any).__dirnameCache = computedDirname;
+    return computedDirname;
+  }
+
+  // Check if import.meta.url is available
+  // Use try-catch to handle cases where import.meta is undefined (e.g., in Jest before transform)
+  let hasImportMetaUrl = false;
+  try {
+    hasImportMetaUrl = typeof import.meta.url !== 'undefined';
+  } catch {
+    // import.meta is undefined (e.g., in Jest environment before Babel transform)
+    return '';
+  }
+
+  if (!hasImportMetaUrl) {
+    return '';
   }
 
   // Try to compute __dirname using fileURLToPath via createRequire
@@ -49,16 +66,35 @@ let __dirname: string = '';
 let peerDepsValidated: boolean = false;
 try {
   // Only compute __dirname if we're in Node.js (not during webpack bundling)
-  if (typeof process !== 'undefined' && process.versions?.node && typeof import.meta.url !== 'undefined') {
-    const require = createRequire(import.meta.url);
-    const urlModule = require('url');
-    
-    // Check if fileURLToPath is actually a function (not a webpack polyfill)
-    if (urlModule && typeof urlModule.fileURLToPath === 'function') {
-      const __filename = urlModule.fileURLToPath(import.meta.url);
+  if (typeof process !== 'undefined' && process.versions?.node) {
+    // In Jest/Babel transformed environment, __filename is available
+    // @ts-ignore - __filename is available after Babel transforms ES modules to CommonJS
+    if (typeof __filename !== 'undefined') {
       __dirname = path.dirname(__filename);
       validatePeerDependencies(__dirname);
       peerDepsValidated = true;
+    } else {
+      // Check if import.meta.url is available - use try-catch since import.meta might be undefined
+      let hasImportMetaUrl = false;
+      try {
+        hasImportMetaUrl = typeof import.meta.url !== 'undefined';
+      } catch {
+        // import.meta is undefined (e.g., in Jest environment before Babel transform)
+        hasImportMetaUrl = false;
+      }
+      
+      if (hasImportMetaUrl) {
+        const require = createRequire(import.meta.url);
+        const urlModule = require('url');
+        
+        // Check if fileURLToPath is actually a function (not a webpack polyfill)
+        if (urlModule && typeof urlModule.fileURLToPath === 'function') {
+          const __filename = urlModule.fileURLToPath(import.meta.url);
+          __dirname = path.dirname(__filename);
+          validatePeerDependencies(__dirname);
+          peerDepsValidated = true;
+        }
+      }
     }
   }
 } catch {

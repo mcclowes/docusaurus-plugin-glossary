@@ -4,17 +4,19 @@
 }
 
 .glossaryTerm {
-  color: var(--ifm-color-primary);
+  color: var(--ifm-font-color-base);
   text-decoration: none;
-  border-bottom: 1px dotted var(--ifm-color-primary);
+  border-bottom: 1px dotted;
+  border-bottom-color: color-mix(in srgb, var(--ifm-font-color-base) 20%, transparent);
   cursor: help;
-  font-weight: 500;
   transition: all 0.2s;
-}
+} 
 
 .glossaryTerm:hover {
   color: var(--ifm-color-primary-dark);
   border-bottom-style: solid;
+  border-bottom-color: var(--ifm-color-primary-dark);
+  border-bottom: none;
 }
 
 .tooltip {
@@ -59,7 +61,7 @@
   transform: translateX(-50%);
   bottom: -6px;
   border: 6px solid transparent;
-  border-bottom-color: var(--ifm-background-surface-color);
+  border-top-color: var(--ifm-background-surface-color);
 }
 .tooltipTop::before {
   content: '';
@@ -68,7 +70,7 @@
   transform: translateX(-50%);
   bottom: -7px;
   border: 7px solid transparent;
-  border-bottom-color: var(--ifm-color-emphasis-300);
+  border-top-color: var(--ifm-color-emphasis-300);
 }
 
 /* Arrow for bottom placement (tooltip below anchor) */
@@ -79,7 +81,7 @@
   transform: translateX(-50%);
   top: -6px;
   border: 6px solid transparent;
-  border-top-color: var(--ifm-background-surface-color);
+  border-bottom-color: var(--ifm-background-surface-color);
 }
 .tooltipBottom::before {
   content: '';
@@ -88,7 +90,7 @@
   transform: translateX(-50%);
   top: -7px;
   border: 7px solid transparent;
-  border-top-color: var(--ifm-color-emphasis-300);
+  border-bottom-color: var(--ifm-color-emphasis-300);
 }
 
 .tooltipVisible {
@@ -111,16 +113,16 @@
 
 /* Dark mode arrow overrides scoped to placement to avoid upside-down arrows */
 [data-theme='dark'] .tooltipTop::after {
-  border-bottom-color: var(--ifm-background-surface-color);
-}
-[data-theme='dark'] .tooltipTop::before {
-  border-bottom-color: var(--ifm-color-emphasis-400);
-}
-[data-theme='dark'] .tooltipBottom::after {
   border-top-color: var(--ifm-background-surface-color);
 }
-[data-theme='dark'] .tooltipBottom::before {
+[data-theme='dark'] .tooltipTop::before {
   border-top-color: var(--ifm-color-emphasis-400);
+}
+[data-theme='dark'] .tooltipBottom::after {
+  border-bottom-color: var(--ifm-background-surface-color);
+}
+[data-theme='dark'] .tooltipBottom::before {
+  border-bottom-color: var(--ifm-color-emphasis-400);
 }
 
 /* Responsive adjustments */

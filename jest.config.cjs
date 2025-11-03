@@ -4,6 +4,9 @@ module.exports = {
   transform: {
     '^.+\\.jsx?$': 'babel-jest',
   },
+  transformIgnorePatterns: [
+    'node_modules/(?!(.*\\.mjs$))',
+  ],
   moduleNameMapper: {
     '^@theme/Layout$': '<rootDir>/jest/mocks/Layout',
     '^@theme/(.*)$': '<rootDir>/src/theme/$1',
