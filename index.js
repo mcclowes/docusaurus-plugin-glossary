@@ -30,6 +30,41 @@ function glossaryPlugin(context, options = {}) {
   return {
     name: 'docusaurus-plugin-glossary',
 
+    configureMarkdown(markdownConfig) {
+      // Automatically configure the remark plugin if autoLinkTerms is enabled
+      if (autoLinkTerms) {
+        if (!markdownConfig.remarkPlugins) {
+          markdownConfig.remarkPlugins = [];
+        }
+
+        const remarkPlugin = require('./remark/glossary-terms');
+
+        // Check if the remark plugin is already configured
+        const isAlreadyConfigured = markdownConfig.remarkPlugins.some(
+          (plugin) => {
+            if (Array.isArray(plugin) && plugin[0]) {
+              // Check if it's our remark plugin by comparing the function reference
+              return plugin[0] === remarkPlugin;
+            }
+            // Also check if it's directly the remark plugin function
+            return plugin === remarkPlugin;
+          }
+        );
+
+        // Only add if not already configured
+        if (!isAlreadyConfigured) {
+          markdownConfig.remarkPlugins.push([
+            remarkPlugin,
+            {
+              glossaryPath,
+              routePath,
+              siteDir: context.siteDir,
+            }
+          ]);
+        }
+      }
+    },
+
     async loadContent() {
       // Load glossary terms from JSON file
       const glossaryFilePath = path.resolve(context.siteDir, glossaryPath);
