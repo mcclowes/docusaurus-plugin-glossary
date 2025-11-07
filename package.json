@@ -3,21 +3,21 @@
   "version": "2.0.1",
   "description": "A Docusaurus plugin for creating and managing glossary terms with auto-generated pages and inline tooltips",
   "type": "module",
-  "main": "lib/index.js",
+  "main": "dist/index.js",
   "exports": {
     ".": {
-      "import": "./lib/index.js",
-      "require": "./lib/index.js",
-      "default": "./lib/index.js"
+      "import": "./dist/index.js",
+      "require": "./dist/index.js",
+      "default": "./dist/index.js"
     },
     "./remark/glossary-terms": {
-      "import": "./lib/remark/glossary-terms.js",
-      "require": "./lib/remark/glossary-terms.js",
-      "default": "./lib/remark/glossary-terms.js"
+      "import": "./dist/remark/glossary-terms.js",
+      "require": "./dist/remark/glossary-terms.js",
+      "default": "./dist/remark/glossary-terms.js"
     }
   },
   "files": [
-    "lib/",
+    "dist/",
     "README.md",
     "LICENSE"
   ],

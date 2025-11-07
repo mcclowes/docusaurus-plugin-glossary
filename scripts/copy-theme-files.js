@@ -8,11 +8,11 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const rootDir = join(__dirname, '..');
 const srcThemeDir = join(rootDir, 'src', 'theme');
-const libThemeDir = join(rootDir, 'lib', 'theme');
+const distThemeDir = join(rootDir, 'dist', 'theme');
 
 async function copyThemeFiles() {
-  // Ensure lib/theme directory exists
-  await fs.ensureDir(libThemeDir);
+  // Ensure dist/theme directory exists
+  await fs.ensureDir(distThemeDir);
   
   // Note: MDXComponents.js is no longer needed as GlossaryTerm 
   // is available via @theme/GlossaryTerm and auto-injected by the remark plugin

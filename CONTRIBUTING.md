@@ -79,7 +79,7 @@ We welcome pull requests! Please follow these guidelines:
    npm run build
    ```
 
-   This compiles TypeScript from `src/index.ts` to `lib/index.js` and copies other files from `src/` to `lib/`.
+   This compiles TypeScript from `src/index.ts` to `dist/index.js` and copies other files from `src/` to `dist/`.
 
    For development with auto-rebuild on changes:
 
@@ -115,7 +115,7 @@ We welcome pull requests! Please follow these guidelines:
 
 ## Project Structure
 
-This project uses TypeScript for the main entry point and JavaScript for components. Source files are in `src/` and compiled output goes to `lib/`.
+This project uses TypeScript for the main entry point and JavaScript for components. Source files are in `src/` and compiled output goes to `dist/`.
 
 ```
 docusaurus-plugin-glossary/
@@ -132,7 +132,7 @@ docusaurus-plugin-glossary/
 │   │       └── index.test.js
 │   └── remark/
 │       └── glossary-terms.js  # Remark plugin for auto-linking
-├── lib/                       # Compiled output (generated, don't edit directly)
+├── dist/                      # Compiled output (generated, don't edit directly)
 │   ├── index.js               # Compiled from src/index.ts
 │   ├── components/            # Copied from src/components/
 │   ├── theme/                 # Copied from src/theme/
@@ -174,8 +174,8 @@ This project uses Jest for testing. When adding new features or fixing bugs:
 When working on the main plugin file (`src/index.ts`):
 
 1. Edit `src/index.ts` (the TypeScript source)
-2. Run `npm run build` to compile to `lib/index.js`
-3. The compiled `lib/index.js` is what gets published to npm (via the `main` field in `package.json`)
+2. Run `npm run build` to compile to `dist/index.js`
+3. The compiled `dist/index.js` is what gets published to npm (via the `main` field in `package.json`)
 4. For development, use `npm run watch` to automatically rebuild on changes
 
 ## Code Style
@@ -189,7 +189,7 @@ When working on the main plugin file (`src/index.ts`):
 - Keep functions focused and small when possible
 
 **Important**: 
-- Edit source files in `src/`, not `lib/`
+- Edit source files in `src/`, not `dist/`
 - Run `npm run build` before testing locally
 - Run `npm run format` before committing to ensure consistent formatting
 
