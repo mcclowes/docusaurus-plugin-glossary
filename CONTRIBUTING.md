@@ -188,7 +188,8 @@ When working on the main plugin file (`src/index.ts`):
 - Add comments for complex logic
 - Keep functions focused and small when possible
 
-**Important**: 
+**Important**:
+
 - Edit source files in `src/`, not `dist/`
 - Run `npm run build` before testing locally
 - Run `npm run format` before committing to ensure consistent formatting
@@ -237,5 +238,3 @@ If you have questions about contributing, please:
 ## License
 
 By contributing, you agree that your contributions will be licensed under the same MIT License as the project.
-
-

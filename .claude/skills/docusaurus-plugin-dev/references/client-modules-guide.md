@@ -15,13 +15,13 @@ This is why you don't need manual imports in content files—the plugin's code i
 
 ```typescript
 // Plugin file: src/plugin.ts
-module.exports = function(context, options) {
+module.exports = function (context, options) {
   return {
     name: 'docusaurus-plugin-image-zoom',
     getClientModules() {
       // This path is bundled into every page
       return [path.resolve(__dirname, './zoom')];
-    }
+    },
   };
 };
 
@@ -29,7 +29,7 @@ module.exports = function(context, options) {
 import ExecutionEnvironment from '@docusaurus/ExecutionEnvironment';
 import mediumZoom from 'medium-zoom';
 
-export default (function() {
+export default (function () {
   // SSR guard - exit if running on server
   if (!ExecutionEnvironment.canUseDOM) {
     return null;
@@ -44,9 +44,9 @@ export default (function() {
       // Initialize zoom on them
       mediumZoom(selector, {
         margin: 24,
-        background: 'rgba(0, 0, 0, 0.9)'
+        background: 'rgba(0, 0, 0, 0.9)',
       });
-    }
+    },
   };
 })();
 ```
@@ -66,12 +66,14 @@ export default (function() {
 **Timing**: During route transition (before page fully renders)
 
 **Use for**:
+
 - DOM manipulation that needs to happen ASAP
 - Initializing third-party libraries on new content
 - Cleaning up from previous route
 - Setting up event listeners on new elements
 
 **Example**:
+
 ```typescript
 onRouteUpdate({ location }) {
   // Elements exist but may not be fully styled yet
@@ -87,11 +89,13 @@ onRouteUpdate({ location }) {
 **Timing**: After route transition completes
 
 **Use for**:
+
 - Analytics/tracking (you want the full page context)
 - Scroll position restoration (DOM must be fully rendered)
 - Operations that depend on computed styles or layout
 
 **Example**:
+
 ```typescript
 onRouteDidUpdate({ location, previousLocation }) {
   // Page is fully rendered and styled
@@ -112,7 +116,7 @@ When using libraries that need explicit cleanup:
 ```typescript
 let zoomInstance = null;
 
-export default (function() {
+export default (function () {
   if (!ExecutionEnvironment.canUseDOM) return null;
 
   return {
@@ -127,7 +131,7 @@ export default (function() {
       setTimeout(() => {
         zoomInstance = mediumZoom('.markdown img');
       }, 100);
-    }
+    },
   };
 })();
 ```
@@ -142,7 +146,7 @@ export default function myPlugin(context, options) {
 
     async contentLoaded({ actions }) {
       actions.setGlobalData({
-        config: options
+        config: options,
       });
     },
 
@@ -153,7 +157,7 @@ export default function myPlugin(context, options) {
 }
 
 // Client reads config from global data
-export default (function() {
+export default (function () {
   if (!ExecutionEnvironment.canUseDOM) return null;
 
   return {
@@ -164,7 +168,7 @@ export default (function() {
       if (config?.enabled) {
         // Use configuration
       }
-    }
+    },
   };
 })();
 ```
@@ -172,7 +176,7 @@ export default (function() {
 ### Pattern: Conditional Enhancement by Route
 
 ```typescript
-export default (function() {
+export default (function () {
   if (!ExecutionEnvironment.canUseDOM) return null;
 
   return {
@@ -182,7 +186,7 @@ export default (function() {
         const codeBlocks = document.querySelectorAll('pre code');
         codeBlocks.forEach(addCopyButton);
       }
-    }
+    },
   };
 })();
 ```
@@ -192,7 +196,7 @@ export default (function() {
 ```typescript
 let debounceTimer: NodeJS.Timeout;
 
-export default (function() {
+export default (function () {
   if (!ExecutionEnvironment.canUseDOM) return null;
 
   return {
@@ -205,7 +209,7 @@ export default (function() {
         const images = document.querySelectorAll('.markdown img');
         images.forEach(lazyLoadImage);
       }, 300);
-    }
+    },
   };
 })();
 ```
@@ -303,6 +307,7 @@ npm start
 ```
 
 Open browser console and check for:
+
 - Your debug logs
 - No JavaScript errors
 - Elements being enhanced correctly
@@ -315,6 +320,7 @@ npm run serve
 ```
 
 Check that:
+
 - No SSR errors during build
 - Client module works in production build
 - No console errors

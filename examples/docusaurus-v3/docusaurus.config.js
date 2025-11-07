@@ -66,7 +66,7 @@ export default {
       },
     ],
     // Plugin to configure webpack to ignore Node.js modules
-    function() {
+    function () {
       return {
         name: 'webpack-node-modules-config',
         configureWebpack(config, isServer) {
