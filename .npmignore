@@ -1,0 +1,57 @@
+# Test files
+__tests__/
+e2e/
+jest/
+*.test.js
+*.test.ts
+*.spec.js
+*.spec.ts
+jest.config.cjs
+jest.setup.js
+playwright.config.js
+playwright-report/
+
+# Examples
+examples/
+
+# Build scripts and configuration
+scripts/
+tsconfig.json
+.babelrc.cjs
+
+# Code formatting and linting
+.prettierrc.cjs
+.prettierignore
+.eslintrc*
+.editorconfig
+
+# CI/CD
+.github/
+
+# Claude Code skills
+.claude/
+
+# Development files
+.vscode/
+.idea/
+*.tgz
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Documentation
+CONTRIBUTING.md
+banner.png
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Source files (we ship dist/)
+src/
