@@ -1,8 +1,13 @@
 # docusaurus-plugin-glossary
 
+[![npm version](https://img.shields.io/npm/v/docusaurus-plugin-glossary.svg)](https://www.npmjs.com/package/docusaurus-plugin-glossary)
+[![ci](https://github.com/mcclowes/docusaurus-plugin-glossary/actions/workflows/ci.yml/badge.svg)](https://github.com/mcclowes/docusaurus-plugin-glossary/actions/workflows/ci.yml)
+
+![docusaurus-plugin-glossary banner](banner.png)
+
 A comprehensive Docusaurus plugin that provides glossary functionality with an auto-generated glossary page, searchable terms, and inline term tooltips.
 
-> Compatibility: Fully compatible with Docusaurus v3 (MDX v3). If you were on a v2-era fork, please upgrade to the latest 1.x release of this plugin.
+> Compatibility: Fully compatible with Docusaurus v3 (MDX v3). If you were on a v2-era fork, please upgrade to the latest 2.x release of this plugin.
 
 ## Features
 
