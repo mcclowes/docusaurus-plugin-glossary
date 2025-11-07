@@ -1,7 +1,7 @@
 import path from 'path';
 import fs from 'fs-extra';
 import os from 'os';
-import glossaryPluginModule from '../dist/index.js';
+import glossaryPluginModule from '../src/index';
 
 const glossaryPlugin = glossaryPluginModule.default || glossaryPluginModule;
 

@@ -2,7 +2,7 @@ module.exports = {
   testEnvironment: 'jsdom',
   setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
   transform: {
-    '^.+\\.jsx?$': 'babel-jest',
+    '^.+\\.[tj]sx?$': 'babel-jest',
   },
   transformIgnorePatterns: [
     'node_modules/(?!(.*\\.mjs$))',
@@ -16,5 +16,10 @@ module.exports = {
     '^unist-util-visit$': '<rootDir>/jest/mocks/unist-util-visit.js',
   },
   testMatch: ['**/__tests__/**/*.js', '**/*.test.js'],
-  collectCoverageFrom: ['src/components/**/*.js', 'src/theme/**/*.js', 'src/index.js', '!**/node_modules/**'],
+  collectCoverageFrom: [
+    'src/components/**/*.{js,jsx,ts,tsx}',
+    'src/theme/**/*.{js,jsx,ts,tsx}',
+    'src/index.{js,ts}',
+    '!**/node_modules/**',
+  ],
 };
