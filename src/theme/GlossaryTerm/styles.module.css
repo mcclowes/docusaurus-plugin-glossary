@@ -10,7 +10,7 @@
   border-bottom-color: color-mix(in srgb, var(--ifm-font-color-base) 20%, transparent);
   cursor: help;
   transition: all 0.2s;
-} 
+}
 
 .glossaryTerm:hover {
   color: var(--ifm-color-primary-dark);

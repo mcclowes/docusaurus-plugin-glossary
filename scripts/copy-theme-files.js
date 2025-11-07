@@ -13,8 +13,8 @@ const distThemeDir = join(rootDir, 'dist', 'theme');
 async function copyThemeFiles() {
   // Ensure dist/theme directory exists
   await fs.ensureDir(distThemeDir);
-  
-  // Note: MDXComponents.js is no longer needed as GlossaryTerm 
+
+  // Note: MDXComponents.js is no longer needed as GlossaryTerm
   // is available via @theme/GlossaryTerm and auto-injected by the remark plugin
 }
 
@@ -22,4 +22,3 @@ copyThemeFiles().catch(error => {
   console.error('Failed to copy theme files:', error);
   process.exit(1);
 });
-

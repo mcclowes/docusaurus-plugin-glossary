@@ -37,7 +37,7 @@ export default function remarkGlossaryTerms({
 
       // Check cache first to avoid repeated file reads
       const cached = glossaryCache.get(glossaryFilePath);
-      if (cached && (now - cached.loadedAt) < CACHE_TTL) {
+      if (cached && now - cached.loadedAt < CACHE_TTL) {
         glossaryTerms = cached.terms;
       } else {
         // Cache miss or expired - load from file synchronously
@@ -56,7 +56,9 @@ export default function remarkGlossaryTerms({
 
           // Log only once per file (when cache is first populated)
           if (!cached && process.env.NODE_ENV !== 'production') {
-            console.log(`[glossary-plugin] Loaded ${glossaryTerms.length} terms from ${glossaryPath}`);
+            console.log(
+              `[glossary-plugin] Loaded ${glossaryTerms.length} terms from ${glossaryPath}`
+            );
           }
         } else {
           // File doesn't exist - cache empty result to avoid repeated checks
@@ -70,7 +72,10 @@ export default function remarkGlossaryTerms({
         }
       }
     } catch (error) {
-      console.warn(`[glossary-plugin] Failed to load glossary from ${glossaryPath}:`, error.message);
+      console.warn(
+        `[glossary-plugin] Failed to load glossary from ${glossaryPath}:`,
+        error.message
+      );
       // Cache the error to avoid repeated attempts
       if (glossaryPath && siteDir) {
         const glossaryFilePath = path.resolve(siteDir, glossaryPath);
@@ -315,10 +320,11 @@ export default function remarkGlossaryTerms({
       // Check for existing import
       const hasImport =
         Array.isArray(tree.children) &&
-        tree.children.some(n =>
-          n.type === 'mdxjsEsm' &&
-          (n.value?.includes('@theme/GlossaryTerm') ||
-            n.data?.estree?.body?.some(s => s.source?.value === '@theme/GlossaryTerm'))
+        tree.children.some(
+          n =>
+            n.type === 'mdxjsEsm' &&
+            (n.value?.includes('@theme/GlossaryTerm') ||
+              n.data?.estree?.body?.some(s => s.source?.value === '@theme/GlossaryTerm'))
         );
 
       if (!hasImport) {

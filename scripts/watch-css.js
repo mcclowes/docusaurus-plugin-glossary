@@ -15,14 +15,14 @@ const distDir = join(rootDir, 'dist');
 async function copyThemeFiles() {
   // Ensure dist directory exists
   await fs.ensureDir(distDir);
-  
+
   // Copy directories that contain non-TypeScript files (components, theme, remark)
   const itemsToCopy = ['components', 'theme', 'remark'];
-  
+
   for (const item of itemsToCopy) {
     const sourcePath = join(srcDir, item);
     const destPath = join(distDir, item);
-    
+
     if (existsSync(sourcePath)) {
       await fs.copy(sourcePath, destPath, { overwrite: true });
     }
@@ -31,31 +31,39 @@ async function copyThemeFiles() {
 
 async function watchNonTSFiles() {
   console.log('Watching CSS and JS files for changes...');
-  
+
   // Initial copy
   await copyThemeFiles();
   console.log('Initial copy complete');
-  
+
   // Watch directories recursively - Node's watch API isn't great for recursive,
   // but we'll watch the main directories
   const dirsToWatch = ['components', 'theme', 'remark'];
-  
+
   for (const dir of dirsToWatch) {
     const dirPath = join(srcDir, dir);
     if (existsSync(dirPath)) {
       try {
         watch(dirPath, { recursive: true }, async (eventType, filename) => {
-          if (filename && (filename.endsWith('.css') || filename.endsWith('.js') || filename.endsWith('.jsx'))) {
+          if (
+            filename &&
+            (filename.endsWith('.css') || filename.endsWith('.js') || filename.endsWith('.jsx'))
+          ) {
             console.log(`File changed: ${dir}/${filename}`);
             await copyThemeFiles();
           }
         });
       } catch (error) {
         if (error.code === 'ERR_FEATURE_UNAVAILABLE_ON_PLATFORM') {
-          console.warn(`Warning: Recursive watching not supported. Watching ${dir} directory only (not subdirectories).`);
+          console.warn(
+            `Warning: Recursive watching not supported. Watching ${dir} directory only (not subdirectories).`
+          );
           // Fallback to non-recursive watching
           watch(dirPath, async (eventType, filename) => {
-            if (filename && (filename.endsWith('.css') || filename.endsWith('.js') || filename.endsWith('.jsx'))) {
+            if (
+              filename &&
+              (filename.endsWith('.css') || filename.endsWith('.js') || filename.endsWith('.jsx'))
+            ) {
               console.log(`File changed: ${dir}/${filename}`);
               await copyThemeFiles();
             }
@@ -72,4 +80,3 @@ watchNonTSFiles().catch(error => {
   console.error('Failed to watch files:', error);
   process.exit(1);
 });
-

@@ -258,16 +258,19 @@ This plugin uses a **hybrid approach** combining build-time transformation and r
 ### Build-Time: Remark Plugin
 
 The remark plugin automatically detects glossary terms in your markdown and:
+
 1. Transforms plain text terms into `<GlossaryTerm>` JSX components
 2. Automatically injects the necessary import statement (`import GlossaryTerm from '@theme/GlossaryTerm';`)
 3. This happens during the MDX compilation, before React renders anything
 
 **No manual imports needed!** When you write:
+
 ```markdown
 Our API uses REST principles.
 ```
 
 The remark plugin transforms it to:
+
 ```jsx
 import GlossaryTerm from '@theme/GlossaryTerm';
 
@@ -277,6 +280,7 @@ Our <GlossaryTerm term="API">API</GlossaryTerm> uses <GlossaryTerm term="REST">R
 ### Runtime: Client Modules
 
 The plugin uses Docusaurus's `getClientModules()` API to automatically load client-side code on every page. This ensures:
+
 - Glossary term functionality is available globally without configuration
 - Components initialize correctly on each route change
 - No performance impact from manual module loading
@@ -284,6 +288,7 @@ The plugin uses Docusaurus's `getClientModules()` API to automatically load clie
 ### Theme Components
 
 The `GlossaryTerm` component is provided via the theme system (`@theme/GlossaryTerm`), making it:
+
 - Available to all MDX files through automatic imports
 - Swizzlable for custom styling and behavior
 - Accessible to both the remark plugin and manual usage
@@ -543,6 +548,7 @@ npm run build
 ```
 
 This will:
+
 1. Compile TypeScript (`src/index.ts`) to JavaScript (`dist/index.js`)
 2. Copy JavaScript, CSS, and test files from `src/` to `dist/`
 

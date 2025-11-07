@@ -23,7 +23,7 @@ export default function myPlugin(context, options): Plugin {
 // src/client/index.ts - Enhance DOM automatically on every page
 import ExecutionEnvironment from '@docusaurus/ExecutionEnvironment';
 
-export default (function() {
+export default (function () {
   if (!ExecutionEnvironment.canUseDOM) return null;
 
   return {
@@ -33,7 +33,7 @@ export default (function() {
         img.style.cursor = 'zoom-in';
         img.addEventListener('click', () => console.log('Image clicked'));
       });
-    }
+    },
   };
 })();
 ```
@@ -49,20 +49,25 @@ export default (function() {
 ## Common Patterns
 
 ### Pattern 1: DOM Enhancement (Image Zoom, Code Copy)
+
 Use `onRouteUpdate` with DOM selectors to enhance elements automatically without imports.
 
 ### Pattern 2: External Library Integration
+
 Initialize third-party libraries (medium-zoom, highlight.js) and reinitialize on route changes.
 
 ### Pattern 3: Global Event Listeners
+
 Attach keyboard shortcuts or scroll handlers once, persist across routes using initialization flags.
 
 ### Pattern 4: Plugin Options
+
 Pass configuration from plugin to client via `setGlobalData` or inline during build.
 
 ## Reference Files
 
 For detailed documentation:
+
 - `/home/user/docusaurus-plugin-starter/docs/CLIENT_MODULES.md` - Comprehensive guide
 - `/home/user/docusaurus-plugin-starter/examples/` - Working examples for all patterns
 - `/home/user/docusaurus-plugin-starter/README.md` - Full starter documentation
@@ -70,15 +75,18 @@ For detailed documentation:
 ## Quick Reference
 
 **Plugin Hooks** (`src/plugin.ts`):
+
 - `loadContent()` - Load/process data at build time
 - `contentLoaded()` - Inject global data with `setGlobalData()` or add routes
 - `getClientModules()` - Return array of client module paths (runs in browser)
 
 **Client Lifecycle** (`src/client/index.ts`):
+
 - `onRouteUpdate()` - During navigation (use for DOM manipulation)
 - `onRouteDidUpdate()` - After navigation completes (use for analytics)
 
 **Critical Guardrails**:
+
 - ❌ Never import Node modules (`fs`, `path`) in `src/client/*`
 - ✅ Always wrap client code with `ExecutionEnvironment.canUseDOM` check
 - ✅ Use `setTimeout(() => {}, 0)` if DOM elements not immediately available
