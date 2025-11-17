@@ -1,6 +1,6 @@
 {
   "name": "docusaurus-plugin-glossary",
-  "version": "2.1.0",
+  "version": "3.0.0",
   "description": "A Docusaurus plugin for creating and managing glossary terms with auto-generated pages and inline tooltips",
   "type": "module",
   "main": "dist/index.js",
