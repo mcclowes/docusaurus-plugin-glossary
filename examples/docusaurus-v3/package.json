@@ -4,7 +4,8 @@
   "version": "1.1.0",
   "scripts": {
     "start": "docusaurus start",
-    "build": "docusaurus build",
+    "build": "npm run build:plugin && docusaurus build",
+    "build:plugin": "cd ../.. && npm install && npm run build",
     "serve": "docusaurus serve",
     "clear": "docusaurus clear"
   },
@@ -12,8 +13,7 @@
     "@docusaurus/core": "^3.0.0",
     "@docusaurus/preset-classic": "^3.0.0",
     "react": "^18.0.0",
-    "react-dom": "^18.0.0",
-    "docusaurus-plugin-glossary": "file:../../lib"
+    "react-dom": "^18.0.0"
   },
   "engines": {
     "node": ">=16.14"

@@ -27,14 +27,14 @@ test.describe('Glossary Plugin', () => {
     test('should have letter navigation', async ({ page }) => {
       await page.goto('/glossary');
 
-      // Check that letter navigation exists
-      const letterNav = page.locator('nav a');
+      // Check that letter navigation exists - target nav links with href starting with #letter-
+      const letterNav = page.locator('nav a[href^="#letter-"]');
       await expect(letterNav).toHaveCount(3); // A, R, W
 
       // Verify specific letters
-      await expect(page.getByRole('link', { name: 'A' })).toBeVisible();
-      await expect(page.getByRole('link', { name: 'R' })).toBeVisible();
-      await expect(page.getByRole('link', { name: 'W' })).toBeVisible();
+      await expect(page.locator('a[href="#letter-A"]')).toBeVisible();
+      await expect(page.locator('a[href="#letter-R"]')).toBeVisible();
+      await expect(page.locator('a[href="#letter-W"]')).toBeVisible();
     });
 
     test('should support search functionality', async ({ page }) => {
@@ -68,8 +68,8 @@ test.describe('Glossary Plugin', () => {
     test('should have related terms links', async ({ page }) => {
       await page.goto('/glossary');
 
-      // Check that related terms section exists
-      await expect(page.getByText('Related terms:')).toBeVisible();
+      // Check that related terms section exists - use first() to handle multiple matches
+      await expect(page.getByText('Related terms:').first()).toBeVisible();
 
       // Check that related terms are linked
       const relatedLink = page.locator('a[href="#rest"]').first();
@@ -118,7 +118,9 @@ test.describe('Glossary Plugin', () => {
       await page.goto('/docs/auto-link');
 
       // Check that multiple terms are linked
-      await expect(page.locator('a[href*="/glossary#api"]')).toHaveCount(1);
+      // Note: "API" appears twice in the content, so we check for at least 1
+      const apiLinks = page.locator('a[href*="/glossary#api"]');
+      await expect(apiLinks).toHaveCount(2); // API appears twice in the content
       await expect(page.locator('a[href*="/glossary#rest"]')).toHaveCount(1);
       await expect(page.locator('a[href*="/glossary#webhook"]')).toHaveCount(1);
 
@@ -178,9 +180,13 @@ test.describe('Glossary Plugin', () => {
         // Hover to show tooltip
         await glossaryLink.hover();
 
-        // Check tooltip appears
+        // Wait a bit for tooltip to appear
+        await page.waitForTimeout(100);
+
+        // Check tooltip appears - tooltip might be in DOM but hidden, check for visibility
         const tooltip = page.locator('[role="tooltip"]').first();
-        await expect(tooltip).toBeVisible();
+        // The tooltip should be visible when hovered
+        await expect(tooltip).toBeVisible({ timeout: 2000 });
       }
     });
   });

@@ -163,8 +163,8 @@ export default function preset(
 
   return {
     themes: [
-      // Return classic theme - use string instead of require.resolve so it resolves from user's node_modules
-      '@docusaurus/theme-classic',
+      // Pass theme options (including customCss) to theme-classic
+      ['@docusaurus/theme-classic', theme || {}],
     ],
     plugins,
   };
