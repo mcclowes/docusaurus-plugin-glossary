@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, within } from '@testing-library/react';
+import { render, screen, within, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import GlossaryTerm from './index';
 
@@ -128,8 +128,10 @@ describe('GlossaryTerm', () => {
     const hasPlacement =
       tooltip.classList.contains('tooltipTop') || tooltip.classList.contains('tooltipBottom');
     expect(hasPlacement).toBe(true);
-    // Inline style should include computed top/left
-    expect(tooltip.style.top).toMatch(/px$/);
-    expect(tooltip.style.left).toMatch(/px$/);
+    // Wait for requestAnimationFrame callbacks to execute and apply position styles
+    await waitFor(() => {
+      expect(tooltip.style.top).toMatch(/px$/);
+      expect(tooltip.style.left).toMatch(/px$/);
+    });
   });
 });
