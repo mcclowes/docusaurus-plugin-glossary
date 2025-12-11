@@ -41,7 +41,9 @@
     "prepublishOnly": "npm run build && npm test",
     "version": "npm version",
     "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,css,md}\"",
-    "format:check": "prettier --check \"**/*.{js,jsx,ts,tsx,json,css,md}\""
+    "format:check": "prettier --check \"**/*.{js,jsx,ts,tsx,json,css,md}\"",
+    "lint": "eslint \"src/**/*.{js,jsx,ts,tsx}\" \"__tests__/**/*.js\"",
+    "lint:fix": "eslint \"src/**/*.{js,jsx,ts,tsx}\" \"__tests__/**/*.js\" --fix"
   },
   "keywords": [
     "docusaurus",
@@ -73,12 +75,18 @@
     "validate-peer-dependencies": "^2.2.0"
   },
   "engines": {
-    "node": ">=16.14"
+    "node": ">=18.0"
   },
   "devDependencies": {
     "@babel/preset-env": "^7.28.5",
     "@babel/preset-react": "^7.28.5",
     "@babel/preset-typescript": "^7.28.5",
+    "@eslint/js": "^9.28.0",
+    "@typescript-eslint/eslint-plugin": "^8.33.0",
+    "@typescript-eslint/parser": "^8.33.0",
+    "eslint": "^9.28.0",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^5.2.0",
     "@docusaurus/tsconfig": "^3.9.2",
     "@docusaurus/types": "^3.9.2",
     "@playwright/test": "^1.56.1",

@@ -4,6 +4,7 @@ import { createRequire } from 'module';
 import type { LoadContext, Plugin } from '@docusaurus/types';
 import validatePeerDependencies from 'validate-peer-dependencies';
 import remarkGlossaryTerms from './remark/glossary-terms.js';
+import { validateGlossaryData, GlossaryValidationError } from './validation.js';
 
 // Helper function to compute __dirname lazily when needed
 // This avoids webpack bundling issues by not using fileURLToPath at module load time
@@ -268,9 +269,33 @@ export default function glossaryPlugin(
       const glossaryFilePath = path.resolve(context.siteDir, glossaryPath);
 
       if (await fs.pathExists(glossaryFilePath)) {
-        const glossaryData = (await fs.readJson(glossaryFilePath)) as GlossaryData;
-        glossaryDataCache = glossaryData;
-        return glossaryData;
+        try {
+          const rawData = await fs.readJson(glossaryFilePath);
+
+          // Validate glossary data structure
+          const validationResult = validateGlossaryData(rawData, { throwOnError: false });
+
+          if (!validationResult.valid) {
+            console.warn(
+              `[glossary-plugin] Glossary file has validation errors at ${glossaryFilePath}:`
+            );
+            validationResult.errors.forEach(err => {
+              console.warn(`  - [${err.field}] ${err.message}`);
+            });
+            console.warn('[glossary-plugin] Proceeding with valid terms only.');
+          }
+
+          glossaryDataCache = validationResult.data;
+          return validationResult.data;
+        } catch (error) {
+          if (error instanceof GlossaryValidationError) {
+            throw error;
+          }
+          // JSON parsing error
+          throw new Error(
+            `Failed to parse glossary file at ${glossaryFilePath}: ${error instanceof Error ? error.message : String(error)}`
+          );
+        }
       }
 
       console.warn(`Glossary file not found at ${glossaryFilePath}. Using empty glossary.`);
@@ -338,6 +363,15 @@ export const remarkPlugin = remarkGlossaryTerms;
 
 // Export cache clearing utility
 export { clearGlossaryCache } from './remark/glossary-terms.js';
+
+// Export validation utilities
+export {
+  validateGlossaryData,
+  GlossaryValidationError,
+  formatValidationErrors,
+  type ValidationError,
+  type ValidationResult,
+} from './validation.js';
 
 /**
  * Helper function to get the configured remark plugin

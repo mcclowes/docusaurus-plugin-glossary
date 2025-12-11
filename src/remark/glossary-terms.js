@@ -2,6 +2,60 @@ import { visit } from 'unist-util-visit';
 import path from 'path';
 import fs from 'fs';
 
+/**
+ * Simple validation for glossary terms loaded from file
+ * Returns only valid terms with required fields
+ *
+ * @param {unknown} data - The parsed JSON data
+ * @param {string} filePath - Path to the file (for error messages)
+ * @returns {{ terms: Array<{term: string, definition: string}>, errors: string[] }}
+ */
+function validateGlossaryTerms(data, filePath) {
+  const errors = [];
+  const validTerms = [];
+
+  if (data === null || data === undefined) {
+    errors.push(`Glossary data is null or undefined`);
+    return { terms: [], errors };
+  }
+
+  if (typeof data !== 'object') {
+    errors.push(`Glossary data must be an object, got ${typeof data}`);
+    return { terms: [], errors };
+  }
+
+  if (!('terms' in data)) {
+    errors.push(`Glossary data must contain a "terms" array`);
+    return { terms: [], errors };
+  }
+
+  if (!Array.isArray(data.terms)) {
+    errors.push(`Field "terms" must be an array, got ${typeof data.terms}`);
+    return { terms: [], errors };
+  }
+
+  data.terms.forEach((term, index) => {
+    if (term === null || term === undefined || typeof term !== 'object') {
+      errors.push(`terms[${index}]: Term must be an object`);
+      return;
+    }
+
+    if (typeof term.term !== 'string' || term.term.trim() === '') {
+      errors.push(`terms[${index}]: Missing or invalid "term" field`);
+      return;
+    }
+
+    if (typeof term.definition !== 'string') {
+      errors.push(`terms[${index}]: Missing or invalid "definition" field`);
+      return;
+    }
+
+    validTerms.push(term);
+  });
+
+  return { terms: validTerms, errors };
+}
+
 // Cache for glossary data to avoid repeated synchronous file reads
 // Key: absolute file path, Value: { terms, loadedAt }
 const glossaryCache = new Map();
@@ -45,8 +99,35 @@ export default function remarkGlossaryTerms({
         // Consider passing terms directly to avoid this
         if (fs.existsSync(glossaryFilePath)) {
           const fileContent = fs.readFileSync(glossaryFilePath, 'utf8');
-          const glossaryData = JSON.parse(fileContent);
-          glossaryTerms = glossaryData.terms || [];
+          let glossaryData;
+          try {
+            glossaryData = JSON.parse(fileContent);
+          } catch (parseError) {
+            console.error(
+              `[glossary-plugin] Failed to parse glossary JSON at ${glossaryPath}:`,
+              parseError.message
+            );
+            glossaryCache.set(glossaryFilePath, {
+              terms: [],
+              loadedAt: now,
+            });
+            return tree => tree;
+          }
+
+          // Validate glossary data
+          const { terms: validTerms, errors } = validateGlossaryTerms(glossaryData, glossaryPath);
+
+          if (errors.length > 0) {
+            console.warn(`[glossary-plugin] Glossary validation errors in ${glossaryPath}:`);
+            errors.forEach(err => console.warn(`  - ${err}`));
+            if (validTerms.length > 0) {
+              console.warn(
+                `[glossary-plugin] Proceeding with ${validTerms.length} valid term(s).`
+              );
+            }
+          }
+
+          glossaryTerms = validTerms;
 
           // Update cache
           glossaryCache.set(glossaryFilePath, {
@@ -116,7 +197,7 @@ export default function remarkGlossaryTerms({
 
     const result = [];
     let lastIndex = 0;
-    let textLower = text.toLowerCase();
+    const textLower = text.toLowerCase();
 
     // Find all matches
     const matches = [];

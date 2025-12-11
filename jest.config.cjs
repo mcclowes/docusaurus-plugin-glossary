@@ -14,6 +14,8 @@ module.exports = {
     '\\.module\\.css$': 'identity-obj-proxy',
     '\\.css$': require.resolve('./jest/cssMapper.js'),
     '^unist-util-visit$': '<rootDir>/jest/mocks/unist-util-visit.js',
+    // Handle .js extension imports for TypeScript files
+    '^(\\.{1,2}/.*)\\.js$': '$1',
   },
   testMatch: ['**/__tests__/**/*.js', '**/*.test.js'],
   collectCoverageFrom: [
@@ -22,4 +24,12 @@ module.exports = {
     'src/index.{js,ts}',
     '!**/node_modules/**',
   ],
+  coverageThreshold: {
+    global: {
+      branches: 70,
+      functions: 75,
+      lines: 75,
+      statements: 75,
+    },
+  },
 };
