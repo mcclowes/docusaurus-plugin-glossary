@@ -2,10 +2,17 @@ name: Publish to npm
 
 on:
   push:
-    branches: [ main ]
+    tags:
+      - 'v*' # Triggers on v1.0.0, v2.1.3, etc.
   release:
     types: [published]
   workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Dry run (do not publish)'
+        required: false
+        default: 'false'
+        type: boolean
 
 permissions:
   contents: read
@@ -37,26 +44,32 @@ jobs:
         run: npm test -- --ci
 
       - name: Verify tag matches package version
-        if: startsWith(github.ref, 'refs/tags/')
+        if: github.event_name == 'release'
         run: |
           PACKAGE_VERSION=$(node -p "require('./package.json').version")
           TAG_VERSION=${GITHUB_REF#refs/tags/}
-          if [ "$TAG_VERSION" != "$PACKAGE_VERSION" ] && [ "$TAG_VERSION" != "v$PACKAGE_VERSION" ]; then
-            echo "Tag version ($TAG_VERSION) does not match package.json version ($PACKAGE_VERSION)"
+          # Strip leading 'v' if present for comparison
+          TAG_VERSION_CLEAN=${TAG_VERSION#v}
+          if [ "$TAG_VERSION_CLEAN" != "$PACKAGE_VERSION" ]; then
+            echo "::error::Tag version ($TAG_VERSION) does not match package.json version ($PACKAGE_VERSION)"
             exit 1
           fi
 
+      - name: Publish to npm (dry run)
+        if: inputs.dry_run == 'true'
+        run: npm publish --access public --dry-run
+
       - name: Publish to npm
+        if: inputs.dry_run != 'true'
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           if ! npm publish --access public 2>&1 | tee /tmp/npm-publish.log; then
             # Check if the error is about already published version
             if grep -q "You cannot publish over the previously published versions" /tmp/npm-publish.log; then
-              echo "Version already published, treating as success"
+              echo "::warning::Version already published, skipping"
               exit 0
             fi
             # For any other error, fail normally
             exit 1
           fi
-

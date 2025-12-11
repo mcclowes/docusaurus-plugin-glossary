@@ -81,6 +81,7 @@ export default [
       'no-unused-vars': 'off', // Using TypeScript's version instead
       'prefer-const': 'warn',
       eqeqeq: ['error', 'always', { null: 'ignore' }],
+      'no-undef': 'off', // TypeScript handles this
     },
     settings: {
       react: {
