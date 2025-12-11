@@ -68,9 +68,9 @@ Pass configuration from plugin to client via `setGlobalData` or inline during bu
 
 For detailed documentation:
 
-- `/home/user/docusaurus-plugin-starter/docs/CLIENT_MODULES.md` - Comprehensive guide
-- `/home/user/docusaurus-plugin-starter/examples/` - Working examples for all patterns
-- `/home/user/docusaurus-plugin-starter/README.md` - Full starter documentation
+- [references/client-modules-guide.md](references/client-modules-guide.md) - Comprehensive client modules guide
+- [README.md](../../../README.md) - Plugin documentation
+- [CONTRIBUTING.md](../../../CONTRIBUTING.md) - Development guide
 
 ## Quick Reference
 

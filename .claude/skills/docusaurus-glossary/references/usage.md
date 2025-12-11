@@ -2,7 +2,7 @@
 
 ## Automatic Term Detection
 
-With `autoLinkTerms: true` (default), terms are automatically detected and linked in markdown:
+When using the preset (`docusaurus-plugin-glossary/preset`), terms are automatically detected and linked in markdown:
 
 ```markdown
 Our API uses REST principles to provide a simple interface.

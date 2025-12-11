@@ -121,9 +121,7 @@ export default function remarkGlossaryTerms({
             console.warn(`[glossary-plugin] Glossary validation errors in ${glossaryPath}:`);
             errors.forEach(err => console.warn(`  - ${err}`));
             if (validTerms.length > 0) {
-              console.warn(
-                `[glossary-plugin] Proceeding with ${validTerms.length} valid term(s).`
-              );
+              console.warn(`[glossary-plugin] Proceeding with ${validTerms.length} valid term(s).`);
             }
           }
 

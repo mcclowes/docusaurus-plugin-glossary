@@ -12,15 +12,19 @@ description: Use when working with docusaurus-plugin-glossary to configure, mana
 Configure the plugin in `docusaurus.config.js` and create a glossary JSON file:
 
 ```javascript
-// docusaurus.config.js
+// docusaurus.config.js - Using the preset (recommended)
 module.exports = {
-  plugins: [
+  presets: [
     [
-      'docusaurus-plugin-glossary',
+      'docusaurus-plugin-glossary/preset',
       {
-        glossaryPath: 'glossary/glossary.json',
-        routePath: '/glossary',
-        autoLinkTerms: true, // Auto-detects terms in markdown
+        glossary: {
+          glossaryPath: 'glossary/glossary.json',
+          routePath: '/glossary',
+        },
+        docs: {
+          /* your docs config */
+        },
       },
     ],
   ],
@@ -29,10 +33,10 @@ module.exports = {
 
 ## Core Principles
 
-- **Auto-linking**: Terms in markdown are automatically detected and linked with tooltips
+- **Auto-linking**: Terms in markdown are automatically detected and linked with tooltips (via preset)
 - **Glossary JSON**: Single source of truth at `glossary/glossary.json` with terms array
 - **Component-based**: Use `<GlossaryTerm term="API" />` for manual control in MDX
-- **Auto-configured**: Remark plugin auto-wires on Docusaurus v3 when autoLinkTerms is true
+- **Preset approach**: Use the preset to auto-configure the remark plugin for docs, blog, and pages
 
 ## Common Patterns
 
@@ -42,7 +46,7 @@ Create/update `glossary/glossary.json` with term objects containing `term`, `def
 
 ### Troubleshooting Auto-linking
 
-If terms aren't linking: verify glossaryPath exists, check autoLinkTerms is true, clear cache with `npm run clear`, restart dev server
+If terms aren't linking: verify glossaryPath exists, ensure using the preset (not just plugin), clear cache with `npm run clear`, restart dev server
 
 ## Reference Files
 

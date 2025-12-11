@@ -280,9 +280,7 @@ describe('GlossaryValidationError', () => {
   });
 
   it('should format error message correctly', () => {
-    const errors = [
-      { field: 'terms[0].term', message: 'Missing required field "term"' },
-    ];
+    const errors = [{ field: 'terms[0].term', message: 'Missing required field "term"' }];
     const error = new GlossaryValidationError(errors);
 
     expect(error.message).toContain('1 error');
@@ -315,9 +313,7 @@ describe('formatValidationErrors', () => {
   });
 
   it('should include truncated value when present', () => {
-    const errors = [
-      { field: 'terms', message: 'Wrong type', value: 'short' },
-    ];
+    const errors = [{ field: 'terms', message: 'Wrong type', value: 'short' }];
     const result = formatValidationErrors(errors);
 
     expect(result).toContain('(got: short)');
@@ -325,9 +321,7 @@ describe('formatValidationErrors', () => {
 
   it('should truncate long values', () => {
     const longValue = 'a'.repeat(100);
-    const errors = [
-      { field: 'terms', message: 'Wrong type', value: longValue },
-    ];
+    const errors = [{ field: 'terms', message: 'Wrong type', value: longValue }];
     const result = formatValidationErrors(errors);
 
     expect(result).toContain('...');
