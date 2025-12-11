@@ -27,12 +27,6 @@ jobs:
       - name: Build plugin
         run: npm run build
 
-      - name: Create lib directory and copy dist
-        run: |
-          mkdir -p lib
-          cp -r dist/* lib/
-          cp package.json lib/
-
       - name: Install example site dependencies
         working-directory: examples/docusaurus-v3
         run: npm install

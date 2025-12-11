@@ -1,165 +1,17 @@
 import path from 'path';
+import { fileURLToPath } from 'url';
 import fs from 'fs-extra';
-import { createRequire } from 'module';
 import type { LoadContext, Plugin } from '@docusaurus/types';
 import validatePeerDependencies from 'validate-peer-dependencies';
 import remarkGlossaryTerms from './remark/glossary-terms.js';
 import { validateGlossaryData, GlossaryValidationError } from './validation.js';
 
-// Helper function to compute __dirname lazily when needed
-// This avoids webpack bundling issues by not using fileURLToPath at module load time
-function getDirname(): string {
-  // Check if we're in a Node.js environment
-  if (typeof process === 'undefined' || !process.versions?.node) {
-    return '';
-  }
+// Standard ES module directory resolution
+const currentFilePath = fileURLToPath(import.meta.url);
+const currentDir = path.dirname(currentFilePath);
 
-  // Use cached value if available
-  const global = globalThis as any;
-  if (global.__dirnameCache) {
-    return global.__dirnameCache;
-  }
-
-  // Use a lock to prevent race conditions when multiple calls happen concurrently
-  // This ensures only one execution path computes and sets the cache
-  if (global.__dirnameComputing) {
-    // Another call is already computing __dirname, wait and retry
-    // In practice, this should be rare since module initialization is typically sequential
-    let retries = 0;
-    while (global.__dirnameComputing && retries < 10) {
-      retries++;
-      // Busy wait with a small delay (not ideal but works for module init)
-    }
-    // Return cached value if available after waiting
-    if (global.__dirnameCache) {
-      return global.__dirnameCache;
-    }
-    // If still computing after retries, return empty to avoid deadlock
-    return '';
-  }
-
-  // Set computing flag to prevent concurrent execution
-  global.__dirnameComputing = true;
-
-  try {
-    // In Jest/Babel transformed environment, __filename is available
-    // @ts-ignore - __filename is available after Babel transforms ES modules to CommonJS
-    if (typeof __filename !== 'undefined') {
-      const computedDirname = path.dirname(__filename);
-      global.__dirnameCache = computedDirname;
-      return computedDirname;
-    }
-
-    // Check if import.meta.url is available
-    // Use try-catch to handle cases where import.meta is undefined (e.g., in Jest before transform)
-    let hasImportMetaUrl = false;
-    try {
-      hasImportMetaUrl = typeof import.meta.url !== 'undefined';
-    } catch {
-      // import.meta is undefined (e.g., in Jest environment before Babel transform)
-      return '';
-    }
-
-    if (!hasImportMetaUrl) {
-      return '';
-    }
-
-    // Try to compute __dirname using fileURLToPath via createRequire
-    // This avoids webpack trying to bundle fileURLToPath at module load time
-    try {
-      const require = createRequire(import.meta.url);
-      const urlModule = require('url');
-
-      // Check if fileURLToPath is actually a function (webpack may provide a broken polyfill)
-      if (urlModule && typeof urlModule.fileURLToPath === 'function') {
-        const __filename = urlModule.fileURLToPath(import.meta.url);
-        const computedDirname = path.dirname(__filename);
-        global.__dirnameCache = computedDirname;
-        return computedDirname;
-      }
-    } catch (error) {
-      // If webpack provides a broken polyfill or require fails, return empty
-      // __dirname will be computed when the plugin function is called (server-side only)
-      return '';
-    }
-    return '';
-  } finally {
-    // Always clear the computing flag
-    global.__dirnameComputing = false;
-  }
-}
-
-// Initialize __dirname at module load time, but handle webpack bundling gracefully
-let __dirname: string = '';
-let peerDepsValidated: boolean = false;
-try {
-  // Only compute __dirname if we're in Node.js (not during webpack bundling)
-  if (typeof process !== 'undefined' && process.versions?.node) {
-    const global = globalThis as any;
-
-    // Set lock to prevent concurrent getDirname() calls during module init
-    if (!global.__dirnameComputing) {
-      global.__dirnameComputing = true;
-
-      try {
-        // In Jest/Babel transformed environment, __filename is available
-        // @ts-ignore - __filename is available after Babel transforms ES modules to CommonJS
-        if (typeof __filename !== 'undefined') {
-          __dirname = path.dirname(__filename);
-          global.__dirnameCache = __dirname;
-          validatePeerDependencies(__dirname);
-          peerDepsValidated = true;
-        } else {
-          // Check if import.meta.url is available - use try-catch since import.meta might be undefined
-          let hasImportMetaUrl = false;
-          try {
-            hasImportMetaUrl = typeof import.meta.url !== 'undefined';
-          } catch {
-            // import.meta is undefined (e.g., in Jest environment before Babel transform)
-            hasImportMetaUrl = false;
-          }
-
-          if (hasImportMetaUrl) {
-            const require = createRequire(import.meta.url);
-            const urlModule = require('url');
-
-            // Check if fileURLToPath is actually a function (not a webpack polyfill)
-            if (urlModule && typeof urlModule.fileURLToPath === 'function') {
-              const __filename = urlModule.fileURLToPath(import.meta.url);
-              __dirname = path.dirname(__filename);
-              global.__dirnameCache = __dirname;
-              validatePeerDependencies(__dirname);
-              peerDepsValidated = true;
-            }
-          }
-        }
-      } finally {
-        global.__dirnameComputing = false;
-      }
-    } else {
-      // Another module init is already computing, use cached value if available
-      if (global.__dirnameCache) {
-        __dirname = global.__dirnameCache;
-      }
-    }
-  }
-} catch {
-  // If initialization fails (e.g., during webpack bundling), __dirname will be empty
-  // and will be computed lazily via getDirname() when needed
-}
-
-// Validate peer dependencies lazily if not already validated
-if (!peerDepsValidated && typeof process !== 'undefined' && process.versions?.node) {
-  try {
-    const dirname = getDirname();
-    if (dirname) {
-      validatePeerDependencies(dirname);
-      peerDepsValidated = true;
-    }
-  } catch {
-    // Ignore validation errors during webpack bundling
-  }
-}
+// Validate peer dependencies at module load time
+validatePeerDependencies(currentDir);
 
 export interface GlossaryPluginOptions {
   glossaryPath?: string;
@@ -259,9 +111,7 @@ export default function glossaryPlugin(
     name: 'docusaurus-plugin-glossary',
 
     getClientModules() {
-      // Compute __dirname if not already set (for webpack bundling compatibility)
-      const pluginDirname = __dirname || getDirname();
-      return [path.resolve(pluginDirname, './client/index.js')];
+      return [path.resolve(currentDir, './client/index.js')];
     },
 
     async loadContent() {
@@ -323,11 +173,9 @@ export default function glossaryPlugin(
       );
 
       // Add glossary page route
-      // Compute __dirname if not already set (for webpack bundling compatibility)
-      const pluginDirname = __dirname || getDirname();
       addRoute({
         path: routePath,
-        component: path.join(pluginDirname, 'components/GlossaryPage.js'),
+        component: path.join(currentDir, 'components/GlossaryPage.js'),
         exact: true,
         modules: {
           glossaryData: glossaryDataPath,
@@ -342,9 +190,7 @@ export default function glossaryPlugin(
     },
 
     getThemePath() {
-      // Compute __dirname if not already set (for webpack bundling compatibility)
-      const pluginDirname = __dirname || getDirname();
-      return path.resolve(pluginDirname, './theme');
+      return path.resolve(currentDir, './theme');
     },
 
     getPathsToWatch() {
