@@ -166,11 +166,11 @@ export default function remarkGlossaryTerms({
     }
   }
 
-  // Build a map of terms for efficient lookup
+  // Build a map of terms for efficient lookup, skipping terms with autoLink: false
   // Key: lowercase term, Value: term object with original case
   const termMap = new Map();
   glossaryTerms.forEach(termObj => {
-    if (termObj.term) {
+    if (termObj.term && termObj.autoLink !== false) {
       termMap.set(termObj.term.toLowerCase(), termObj);
     }
   });

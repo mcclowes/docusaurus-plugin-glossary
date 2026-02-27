@@ -206,6 +206,29 @@ describe('validateGlossaryData', () => {
       expect(result.valid).toBe(false);
       expect(result.errors[0].field).toBe('terms[0].id');
     });
+
+    it('should accept boolean autoLink', () => {
+      const data = {
+        terms: [{ term: 'API', definition: 'Test', autoLink: false }],
+      };
+
+      const result = validateGlossaryData(data, { throwOnError: false });
+
+      expect(result.valid).toBe(true);
+      expect(result.errors).toHaveLength(0);
+    });
+
+    it('should reject non-boolean autoLink', () => {
+      const data = {
+        terms: [{ term: 'API', definition: 'Test', autoLink: 'no' }],
+      };
+
+      const result = validateGlossaryData(data, { throwOnError: false });
+
+      expect(result.valid).toBe(false);
+      expect(result.errors[0].field).toBe('terms[0].autoLink');
+      expect(result.errors[0].message).toContain('must be a boolean');
+    });
   });
 
   describe('duplicate detection', () => {

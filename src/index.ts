@@ -25,6 +25,7 @@ export interface GlossaryTerm {
   abbreviation?: string;
   relatedTerms?: string[];
   id?: string;
+  autoLink?: boolean;
 }
 
 export interface GlossaryData {

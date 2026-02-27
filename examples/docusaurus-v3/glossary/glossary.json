@@ -16,7 +16,8 @@
     {
       "term": "Webhook",
       "definition": "An HTTP callback that occurs when something happens; a simple event-notification via HTTP POST.",
-      "relatedTerms": ["API", "HTTP"]
+      "relatedTerms": ["API", "HTTP"],
+      "autoLink": false
     }
   ]
 }

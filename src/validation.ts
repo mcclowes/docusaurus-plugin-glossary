@@ -120,6 +120,17 @@ function validateTerm(term: unknown, index: number): ValidationError[] {
     }
   }
 
+  // Optional: autoLink (boolean)
+  if ('autoLink' in termObj && termObj.autoLink !== undefined) {
+    if (typeof termObj.autoLink !== 'boolean') {
+      errors.push({
+        field: `${prefix}.autoLink`,
+        message: `Field "autoLink" must be a boolean, got ${typeof termObj.autoLink}`,
+        value: termObj.autoLink,
+      });
+    }
+  }
+
   return errors;
 }
 
