@@ -1,4 +1,6 @@
+// @ts-ignore
 import path from 'path';
+// @ts-ignore
 import { fileURLToPath } from 'url';
 import fs from 'fs-extra';
 import type { LoadContext, Plugin } from '@docusaurus/types';
@@ -29,6 +31,8 @@ export interface GlossaryTerm {
 }
 
 export interface GlossaryData {
+  title?: string;
+  description?: string;
   terms: GlossaryTerm[];
 }
 
