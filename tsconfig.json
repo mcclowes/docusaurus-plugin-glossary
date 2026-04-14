@@ -1,21 +1,23 @@
 {
   "extends": "@docusaurus/tsconfig",
   "compilerOptions": {
-    "outDir": "dist",
-    "rootDir": "src",
-    "allowJs": true,
-    "checkJs": false,
-    "declaration": true,
-    "declarationMap": true,
-    "noEmit": false,
-    "esModuleInterop": true,
-    "skipLibCheck": true,
+    "target": "ES2020",
     "module": "ESNext",
     "moduleResolution": "Bundler",
-    "target": "ES2019",
+    "strict": true,
+    "declaration": true,
+    "declarationMap": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "allowJs": true,
+    "checkJs": false,
+    "noEmit": true,
     "jsx": "react-jsx",
-    "resolveJsonModule": true
+    "outDir": "dist",
+    "rootDir": "."
   },
-  "include": ["src/**/*.ts"],
-  "exclude": ["node_modules", "**/*.test.*", "**/*.spec.*", "examples"]
+  "include": ["src", "tsup.config.ts"],
+  "exclude": ["node_modules", "dist", "examples", "**/*.test.*", "**/*.spec.*"]
 }
