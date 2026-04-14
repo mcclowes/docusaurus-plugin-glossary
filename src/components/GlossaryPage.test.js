@@ -26,6 +26,7 @@ jest.mock('./GlossaryPage.module.css', () => ({
 }));
 
 const mockGlossaryData = {
+  title: 'Test Glossary Title',
   description: 'Test glossary',
   terms: [
     {
@@ -54,7 +55,7 @@ describe('GlossaryPage', () => {
   it('should render glossary with all terms', () => {
     render(<GlossaryPage glossaryData={mockGlossaryData} />);
 
-    expect(screen.getByText('Glossary')).toBeInTheDocument();
+    expect(screen.getByText('Test Glossary Title')).toBeInTheDocument();
     expect(screen.getByText('Test glossary')).toBeInTheDocument();
     // Use getAllBy since terms can appear multiple times (in term names and related links)
     expect(screen.getAllByText('API').length).toBeGreaterThan(0);
@@ -159,6 +160,7 @@ describe('GlossaryPage', () => {
     render(<GlossaryPage glossaryData={emptyData} />);
 
     expect(screen.getByText('Glossary')).toBeInTheDocument();
+    expect(screen.getByText('A collection of terms and their definitions')).toBeInTheDocument();
     expect(screen.getByText('Total terms: 0')).toBeInTheDocument();
   });
 
@@ -166,6 +168,7 @@ describe('GlossaryPage', () => {
     render(<GlossaryPage glossaryData={null} />);
 
     expect(screen.getByText('Glossary')).toBeInTheDocument();
+    expect(screen.getByText('A collection of terms and their definitions')).toBeInTheDocument();
     expect(screen.getByText('Total terms: 0')).toBeInTheDocument();
   });
 

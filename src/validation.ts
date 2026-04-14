@@ -187,8 +187,34 @@ export function validateGlossaryData(
 
   const glossaryData = data as Record<string, unknown>;
 
-  // Check for terms array
+  //Check for title
+  if ('title' in glossaryData && typeof glossaryData.title !== 'string') {
+    errors.push({
+      field: 'title',
+      message: 'The title property in the GlossaryData must be a string.',
+    });
+
+    if (throwOnError && errors.length > 0) {
+      throw new GlossaryValidationError(errors);
+    }
+  }
+  const validTitle = glossaryData.title as string;
+
+  if ('description' in glossaryData && typeof glossaryData.description !== 'string') {
+    errors.push({
+      field: 'description',
+      message: 'The description property in the GlossaryData must be a string.',
+    });
+
+    if (throwOnError && errors.length > 0) {
+      throw new GlossaryValidationError(errors);
+    }
+  }
+
+  const validDescription = glossaryData.description as string;
+
   if (!('terms' in glossaryData)) {
+    // Check for terms array
     errors.push({
       field: 'terms',
       message: 'Glossary data must contain a "terms" array',
@@ -249,7 +275,7 @@ export function validateGlossaryData(
   return {
     valid: errors.length === 0,
     errors,
-    data: { terms: validTerms },
+    data: { title: validTitle, description: validDescription, terms: validTerms },
   };
 }
 
@@ -267,7 +293,9 @@ export class GlossaryValidationError extends Error {
     this.errors = errors;
 
     // Maintains proper stack trace for where error was thrown (V8 engines)
+    // @ts-ignore
     if (Error.captureStackTrace) {
+      // @ts-ignore
       Error.captureStackTrace(this, GlossaryValidationError);
     }
   }
