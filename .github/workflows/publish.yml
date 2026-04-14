@@ -2,6 +2,10 @@ name: Release
 
 on:
   push:
+    branches:
+      - main
+    paths:
+      - 'package.json'
     tags:
       - 'v*'
 
@@ -22,8 +26,28 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
+        with:
+          fetch-depth: 2
+
+      - name: Determine version
+        id: version
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "tag=v$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Check if already published
+        id: check
+        run: |
+          if git rev-parse "v${{ steps.version.outputs.version }}" >/dev/null 2>&1; then
+            echo "Tag v${{ steps.version.outputs.version }} already exists, skipping"
+            echo "skip=true" >> $GITHUB_OUTPUT
+          else
+            echo "skip=false" >> $GITHUB_OUTPUT
+          fi
 
       - name: Setup Node.js
+        if: steps.check.outputs.skip == 'false'
         uses: actions/setup-node@v6
         with:
           node-version: 20
@@ -31,37 +55,41 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
 
       - name: Upgrade npm for OIDC support
+        if: steps.check.outputs.skip == 'false'
         run: npm install -g npm@latest
 
       - name: Install dependencies
+        if: steps.check.outputs.skip == 'false'
         run: npm ci --ignore-scripts
 
       - name: Build package
+        if: steps.check.outputs.skip == 'false'
         run: npm run build
 
       - name: Run tests
+        if: steps.check.outputs.skip == 'false'
         run: npm test -- --ci
 
-      - name: Validate version matches tag
+      - name: Create and push tag
+        if: steps.check.outputs.skip == 'false'
         run: |
-          TAG_VERSION="${GITHUB_REF#refs/tags/v}"
-          PKG_VERSION=$(node -p "require('./package.json').version")
-          if [ "$TAG_VERSION" != "$PKG_VERSION" ]; then
-            echo "Error: Tag version ($TAG_VERSION) does not match package.json version ($PKG_VERSION)"
-            exit 1
-          fi
+          git tag ${{ steps.version.outputs.tag }}
+          git push origin ${{ steps.version.outputs.tag }}
 
       - name: Publish to npm with provenance
+        if: steps.check.outputs.skip == 'false'
         run: |
-          if [[ "$GITHUB_REF" == *"-alpha"* ]] || [[ "$GITHUB_REF" == *"-beta"* ]] || [[ "$GITHUB_REF" == *"-rc"* ]]; then
+          if [[ "${{ steps.version.outputs.version }}" == *"-alpha"* ]] || [[ "${{ steps.version.outputs.version }}" == *"-beta"* ]] || [[ "${{ steps.version.outputs.version }}" == *"-rc"* ]]; then
             npm publish --provenance --access public --tag next
           else
             npm publish --provenance --access public
           fi
 
       - name: Create GitHub Release
+        if: steps.check.outputs.skip == 'false'
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ steps.version.outputs.tag }}
           generate_release_notes: true
           draft: false
-          prerelease: ${{ contains(github.ref, '-alpha') || contains(github.ref, '-beta') || contains(github.ref, '-rc') }}
+          prerelease: ${{ contains(steps.version.outputs.version, '-alpha') || contains(steps.version.outputs.version, '-beta') || contains(steps.version.outputs.version, '-rc') }}
