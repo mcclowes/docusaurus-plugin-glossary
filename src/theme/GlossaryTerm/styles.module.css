@@ -5,7 +5,7 @@
 
 .glossaryTerm {
   color: var(--ifm-font-color-base);
-  text-decoration: none;
+  text-underline-offset: 0.2rem;
   border-bottom: 1px dotted;
   border-bottom-color: color-mix(in srgb, var(--ifm-font-color-base) 20%, transparent);
   cursor: help;
@@ -14,9 +14,7 @@
 
 .glossaryTerm:hover {
   color: var(--ifm-color-primary-dark);
-  border-bottom-style: solid;
-  border-bottom-color: var(--ifm-color-primary-dark);
-  border-bottom: none;
+  border-color: transparent;
 }
 
 .tooltip {
