@@ -1,22 +1,68 @@
-import type { Preset } from '@docusaurus/types';
+import type { Preset, LoadContext } from '@docusaurus/types';
 import glossaryPlugin, { getRemarkPlugin } from './index.js';
 import type { GlossaryPluginOptions } from './index.js';
 
-// Type definition for classic preset options (simplified to avoid dependency on @docusaurus/preset-classic)
+/**
+ * Configuration for @docusaurus/plugin-content-docs
+ * Using Record<string, unknown> to allow any valid docs options without coupling to specific version
+ */
+type DocsConfig = Record<string, unknown> & {
+  remarkPlugins?: unknown[];
+};
+
+/**
+ * Configuration for @docusaurus/plugin-content-blog
+ * Can be false to disable, or configuration object
+ */
+type BlogConfig =
+  | false
+  | (Record<string, unknown> & {
+      remarkPlugins?: unknown[];
+    });
+
+/**
+ * Configuration for @docusaurus/plugin-content-pages
+ */
+type PagesConfig = Record<string, unknown> & {
+  remarkPlugins?: unknown[];
+};
+
+/**
+ * Configuration for @docusaurus/theme-classic
+ */
+type ThemeConfig = Record<string, unknown>;
+
+/**
+ * Configuration for analytics plugins
+ */
+type AnalyticsConfig = Record<string, unknown>;
+
+/**
+ * Configuration for @docusaurus/plugin-sitemap
+ * Can be false to disable, or configuration object
+ */
+type SitemapConfig = false | Record<string, unknown>;
+
+/**
+ * Classic preset options (simplified to avoid direct dependency on @docusaurus/preset-classic)
+ * These mirror the options available in the classic preset
+ */
 export interface ClassicPresetOptions {
-  docs?: any;
-  blog?: any;
-  pages?: any;
-  theme?: any;
-  gtag?: any;
-  googleAnalytics?: any;
-  googleTagManager?: any;
-  sitemap?: any;
-  debug?: any;
+  docs?: DocsConfig;
+  blog?: BlogConfig;
+  pages?: PagesConfig;
+  theme?: ThemeConfig;
+  gtag?: AnalyticsConfig;
+  googleAnalytics?: AnalyticsConfig;
+  googleTagManager?: AnalyticsConfig;
+  sitemap?: SitemapConfig;
+  debug?: boolean;
 }
 
 export interface GlossaryPresetOptions extends ClassicPresetOptions {
   glossary?: GlossaryPluginOptions;
+  /** Internal: Docusaurus adds this, we need to exclude it from classic options */
+  id?: string;
 }
 
 /**
@@ -58,16 +104,18 @@ export interface GlossaryPresetOptions extends ClassicPresetOptions {
  * @param options - Preset options including glossary and classic preset options
  * @returns Preset configuration
  */
-export default function preset(context: any, options: GlossaryPresetOptions = {}): Preset {
+export default function preset(context: LoadContext, options: GlossaryPresetOptions = {}): Preset {
   // Explicitly extract glossary and any Docusaurus-added properties that shouldn't go to classic preset
-  const { glossary = {}, id, ...restOptions } = options as any;
+  const { glossary = {}, id: _id, ...restOptions } = options;
 
   // Extract only valid classic preset options
-  const { docs, blog, pages, theme, gtag, googleAnalytics, googleTagManager, sitemap, debug } =
-    restOptions;
+  // Explicitly type blog and sitemap to preserve union types (can be false)
+  const { docs, pages, theme, gtag, googleAnalytics, googleTagManager, debug } = restOptions;
+  const blog: BlogConfig | undefined = restOptions.blog;
+  const sitemap: SitemapConfig | undefined = restOptions.sitemap;
 
   // Build classic options object with only defined properties
-  const classicOptions: any = {};
+  const classicOptions: ClassicPresetOptions = {};
   if (docs !== undefined) classicOptions.docs = docs;
   if (blog !== undefined) classicOptions.blog = blog;
   if (pages !== undefined) classicOptions.pages = pages;
@@ -100,21 +148,18 @@ export default function preset(context: any, options: GlossaryPresetOptions = {}
   };
 
   // Extend blog configuration with glossary remark plugin (optional)
-  const blogConfig = classicOptions.blog;
-  let extendedBlogConfig = blogConfig;
-  if (blogConfig && blogConfig !== false) {
-    const blogRemarkPlugins = typeof blogConfig === 'object' ? blogConfig.remarkPlugins || [] : [];
-    extendedBlogConfig =
-      typeof blogConfig === 'object'
-        ? {
-            ...blogConfig,
-            remarkPlugins: [...blogRemarkPlugins, remarkPlugin],
-          }
-        : blogConfig;
+  // Use typeof check for proper type narrowing (blog can be false, object, or undefined)
+  let extendedBlogConfig: BlogConfig | undefined = blog;
+  if (typeof blog === 'object' && blog !== null) {
+    const blogRemarkPlugins = blog.remarkPlugins || [];
+    extendedBlogConfig = {
+      ...blog,
+      remarkPlugins: [...blogRemarkPlugins, remarkPlugin],
+    };
   }
 
   // Build the final classic preset options
-  const finalClassicOptions: any = {};
+  const finalClassicOptions: ClassicPresetOptions = {};
   if (extendedDocsConfig !== undefined) finalClassicOptions.docs = extendedDocsConfig;
   if (extendedBlogConfig !== undefined) finalClassicOptions.blog = extendedBlogConfig;
   if (extendedPagesConfig !== undefined) finalClassicOptions.pages = extendedPagesConfig;
@@ -125,16 +170,21 @@ export default function preset(context: any, options: GlossaryPresetOptions = {}
   if (sitemap !== undefined) finalClassicOptions.sitemap = sitemap;
   if (debug !== undefined) finalClassicOptions.debug = debug;
 
-  const plugins: any[] = [
+  // Plugin tuple type: [plugin-name, options] or plugin function
+  type PluginEntry =
+    | [string, Record<string, unknown>]
+    | ((ctx: LoadContext) => ReturnType<typeof glossaryPlugin>);
+
+  const plugins: PluginEntry[] = [
     // Add the glossary plugin first
-    function glossaryPluginWrapper(context: any) {
-      return glossaryPlugin(context, glossary);
+    function glossaryPluginWrapper(ctx: LoadContext) {
+      return glossaryPlugin(ctx, glossary);
     },
   ];
 
   // Add classic preset plugins individually
   if (extendedDocsConfig) plugins.push(['@docusaurus/plugin-content-docs', extendedDocsConfig]);
-  if (extendedBlogConfig && extendedBlogConfig !== false)
+  if (typeof extendedBlogConfig === 'object' && extendedBlogConfig !== null)
     plugins.push(['@docusaurus/plugin-content-blog', extendedBlogConfig]);
   if (extendedPagesConfig) plugins.push(['@docusaurus/plugin-content-pages', extendedPagesConfig]);
   if (gtag) plugins.push(['@docusaurus/plugin-google-gtag', gtag]);

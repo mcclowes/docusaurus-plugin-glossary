@@ -63,6 +63,7 @@ A comprehensive Docusaurus plugin that provides glossary functionality with an a
 
    ```json
    {
+     "title": "Glossary",
      "description": "A collection of technical terms and their definitions",
      "terms": [
        {
@@ -108,6 +109,7 @@ Create a JSON file at `glossary/glossary.json` (or your configured path) in your
 
 ```json
 {
+  "title": "Glossary",
   "description": "A collection of technical terms and their definitions",
   "terms": [
     {
@@ -455,6 +457,7 @@ See the [Usage Guide](#usage-guide) section above for complete examples. Here ar
 
 ```json
 {
+  "title": "Glossary",
   "description": "Technical terms used in our documentation",
   "terms": [
     {
@@ -635,6 +638,10 @@ MIT
 ## Contributing
 
 Contributions are welcome! Please see our [Contributing Guide](CONTRIBUTING.md) for details on how to get started.
+
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md) for version history and release notes.
 
 ## Credits
 

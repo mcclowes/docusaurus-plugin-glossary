@@ -122,14 +122,15 @@ test.describe('Glossary Plugin', () => {
       const apiLinks = page.locator('a[href*="/glossary#api"]');
       await expect(apiLinks).toHaveCount(2); // API appears twice in the content
       await expect(page.locator('a[href*="/glossary#rest"]')).toHaveCount(2); // REST appears twice in the content
-      await expect(page.locator('a[href*="/glossary#webhook"]')).toHaveCount(1);
+      await expect(page.locator('a[href*="/glossary#webhook"]')).toHaveCount(2); // Webhook appears twice in the content
 
       // Hover over REST term
       const restLink = page.locator('a[href*="/glossary#rest"]').first();
       await restLink.hover();
 
-      // Check REST tooltip appears
-      const tooltip = page.locator('[role="tooltip"]').first();
+      // Check REST tooltip appears (use specific tooltip ID since first() finds wrong tooltip)
+      // REST appears twice in content, so there are 2 tooltips - first() gets the visible one
+      const tooltip = page.locator('#tooltip-rest').first();
       await expect(tooltip).toBeVisible();
       await expect(tooltip).toContainText('REST');
       await expect(tooltip).toContainText('An architectural style');
@@ -173,21 +174,17 @@ test.describe('Glossary Plugin', () => {
     test('should render manually added glossary term', async ({ page }) => {
       await page.goto('/docs/manual-link');
 
-      // Check if page has manual glossary term component
-      const glossaryLink = page.locator('a[href*="/glossary"]').first();
+      // Check if page has glossary term links (auto-linked terms)
+      const glossaryLink = page.locator('a[href*="/glossary#api"]').first();
+      await expect(glossaryLink).toBeVisible();
 
-      if (await glossaryLink.isVisible()) {
-        // Hover to show tooltip
-        await glossaryLink.hover();
+      // Hover to show tooltip
+      await glossaryLink.hover();
 
-        // Wait a bit for tooltip to appear
-        await page.waitForTimeout(100);
-
-        // Check tooltip appears - tooltip might be in DOM but hidden, check for visibility
-        const tooltip = page.locator('[role="tooltip"]').first();
-        // The tooltip should be visible when hovered
-        await expect(tooltip).toBeVisible({ timeout: 2000 });
-      }
+      // Check tooltip appears
+      const tooltip = page.locator('[role="tooltip"]').first();
+      await expect(tooltip).toBeVisible();
+      await expect(tooltip).toContainText('API');
     });
   });
 });

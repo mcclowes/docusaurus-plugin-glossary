@@ -7,6 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.0.0] - 2024-12-11
+
+### Changed
+
+- **BREAKING**: Removed `autoLinkTerms` option - use the preset for auto-linking instead
+- Recommend preset (`docusaurus-plugin-glossary/preset`) as primary configuration method
+- Updated all documentation to reflect preset-first approach
+
+### Added
+
+- New preset that extends `@docusaurus/preset-classic` with automatic remark plugin configuration
+- `getRemarkPlugin()` helper for manual remark plugin configuration
+- Glossary data validation with detailed error messages
+- `CLAUDE.md` for Claude Code integration
+
+### Fixed
+
+- Documentation accuracy for auto-linking configuration
+- Skill documentation references to non-existent paths
+
+### Documentation
+
+- Updated all Claude skills to use preset approach instead of legacy `autoLinkTerms`
+- Added comprehensive troubleshooting for preset vs plugin usage
+- Improved configuration examples
+
 ## [2.0.2] - 2024-11-07
 
 ### Fixed
@@ -121,7 +147,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Abbreviation support
 - Configurable glossary path and route
 
-[unreleased]: https://github.com/mcclowes/docusaurus-plugin-glossary/compare/v2.0.2...HEAD
+[unreleased]: https://github.com/mcclowes/docusaurus-plugin-glossary/compare/v3.0.0...HEAD
+[3.0.0]: https://github.com/mcclowes/docusaurus-plugin-glossary/releases/tag/v3.0.0
 [2.0.2]: https://github.com/mcclowes/docusaurus-plugin-glossary/releases/tag/v2.0.2
 [2.0.1]: https://github.com/mcclowes/docusaurus-plugin-glossary/releases/tag/v2.0.1
 [2.0.0]: https://github.com/mcclowes/docusaurus-plugin-glossary/releases/tag/v2.0.0

@@ -31,7 +31,7 @@
 
 **Solutions:**
 
-- Ensure `autoLinkTerms` is `true` (default) in plugin config
+- Ensure you're using the preset (`docusaurus-plugin-glossary/preset`) not just the plugin
 - Verify glossary file exists at configured `glossaryPath`
 - Check terms in content match glossary terms (case-insensitive)
 - Clear cache: `npm run clear` and restart dev server
@@ -43,7 +43,7 @@
 **Solutions:**
 
 - Confirm on Docusaurus v3 (`@docusaurus/core@^3`) and React 18
-- Check plugin is in `plugins` array and `autoLinkTerms` not disabled
+- Ensure using the preset for auto-linking, or manually configure the remark plugin
 - Visit `/glossary` to verify route renders correctly
 - If using local patch for v1.0.0, remove it for v1.0.2+
 
@@ -78,4 +78,4 @@ Plugin auto-injects `import GlossaryTerm from '@theme/GlossaryTerm';` when auto-
 
 ### Opting Out of Auto-linking
 
-Set `autoLinkTerms: false` and add remark plugin manually, or only use `<GlossaryTerm />` component explicitly.
+Use the plugin directly (not the preset) and don't configure the remark plugin. You can still use `<GlossaryTerm />` component manually in MDX files.

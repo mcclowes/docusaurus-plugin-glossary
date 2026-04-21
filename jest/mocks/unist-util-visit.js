@@ -11,7 +11,11 @@ function visit(tree, test, visitor) {
     if (!node) return;
 
     // Call visitor if test matches
-    if (!test || typeof test === 'string' || test.type === node.type) {
+    const matches =
+      !test ||
+      (typeof test === 'string' && test === node.type) ||
+      (typeof test === 'object' && test.type === node.type);
+    if (matches) {
       const result = visitor(node, index, parent);
       if (result === false) return; // Stop traversal
     }

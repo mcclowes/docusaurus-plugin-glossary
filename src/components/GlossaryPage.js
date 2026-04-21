@@ -29,10 +29,10 @@ function groupTermsByLetter(terms) {
  * GlossaryPage component - displays all glossary terms
  */
 export default function GlossaryPage({ glossaryData }) {
-  const { siteConfig } = useDocusaurusContext();
+  useDocusaurusContext();
   const [searchTerm, setSearchTerm] = useState('');
 
-  const terms = glossaryData?.terms || [];
+  const terms = useMemo(() => glossaryData?.terms || [], [glossaryData?.terms]);
 
   // Filter terms based on search
   const filteredTerms = useMemo(() => {
@@ -53,11 +53,13 @@ export default function GlossaryPage({ glossaryData }) {
 
   const letters = Object.keys(groupedTerms).sort();
 
+  const glossaryTitle = glossaryData?.title || 'Glossary';
+
   return (
-    <Layout title="Glossary" description="A glossary of terms and definitions">
+    <Layout title={glossaryTitle} description="A glossary of terms and definitions">
       <div className={styles.glossaryContainer}>
         <header className={styles.glossaryHeader}>
-          <h1>Glossary</h1>
+          <h1>{glossaryTitle}</h1>
           <p className={styles.glossaryDescription}>
             {glossaryData?.description || 'A collection of terms and their definitions'}
           </p>

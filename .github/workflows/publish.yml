@@ -1,62 +1,95 @@
-name: Publish to npm
+name: Release
 
 on:
   push:
-    branches: [ main ]
-  release:
-    types: [published]
-  workflow_dispatch:
+    branches:
+      - main
+    paths:
+      - 'package.json'
+    tags:
+      - 'v*'
 
 permissions:
-  contents: read
+  contents: write
+  id-token: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  publish:
-    name: Publish package
-    if: github.repository_owner == 'mcclowes'
+  release:
+    name: Release
     runs-on: ubuntu-latest
+    environment: Production
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 2
 
-      - name: Use Node.js 20
-        uses: actions/setup-node@v4
+      - name: Determine version
+        id: version
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "tag=v$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Check if already published
+        id: check
+        run: |
+          if git rev-parse "v${{ steps.version.outputs.version }}" >/dev/null 2>&1; then
+            echo "Tag v${{ steps.version.outputs.version }} already exists, skipping"
+            echo "skip=true" >> $GITHUB_OUTPUT
+          else
+            echo "skip=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Setup Node.js
+        if: steps.check.outputs.skip == 'false'
+        uses: actions/setup-node@v6
         with:
           node-version: 20
           cache: 'npm'
-          registry-url: https://registry.npmjs.org/
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Upgrade npm for OIDC support
+        if: steps.check.outputs.skip == 'false'
+        run: npm install -g npm@latest
 
       - name: Install dependencies
-        run: npm ci
+        if: steps.check.outputs.skip == 'false'
+        run: npm ci --ignore-scripts
 
       - name: Build package
+        if: steps.check.outputs.skip == 'false'
         run: npm run build
 
       - name: Run tests
+        if: steps.check.outputs.skip == 'false'
         run: npm test -- --ci
 
-      - name: Verify tag matches package version
-        if: startsWith(github.ref, 'refs/tags/')
+      - name: Create and push tag
+        if: steps.check.outputs.skip == 'false'
         run: |
-          PACKAGE_VERSION=$(node -p "require('./package.json').version")
-          TAG_VERSION=${GITHUB_REF#refs/tags/}
-          if [ "$TAG_VERSION" != "$PACKAGE_VERSION" ] && [ "$TAG_VERSION" != "v$PACKAGE_VERSION" ]; then
-            echo "Tag version ($TAG_VERSION) does not match package.json version ($PACKAGE_VERSION)"
-            exit 1
+          git tag ${{ steps.version.outputs.tag }}
+          git push origin ${{ steps.version.outputs.tag }}
+
+      - name: Publish to npm with provenance
+        if: steps.check.outputs.skip == 'false'
+        run: |
+          if [[ "${{ steps.version.outputs.version }}" == *"-alpha"* ]] || [[ "${{ steps.version.outputs.version }}" == *"-beta"* ]] || [[ "${{ steps.version.outputs.version }}" == *"-rc"* ]]; then
+            npm publish --provenance --access public --tag next
+          else
+            npm publish --provenance --access public
           fi
 
-      - name: Publish to npm
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: |
-          if ! npm publish --access public 2>&1 | tee /tmp/npm-publish.log; then
-            # Check if the error is about already published version
-            if grep -q "You cannot publish over the previously published versions" /tmp/npm-publish.log; then
-              echo "Version already published, treating as success"
-              exit 0
-            fi
-            # For any other error, fail normally
-            exit 1
-          fi
-
+      - name: Create GitHub Release
+        if: steps.check.outputs.skip == 'false'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          generate_release_notes: true
+          draft: false
+          prerelease: ${{ contains(steps.version.outputs.version, '-alpha') || contains(steps.version.outputs.version, '-beta') || contains(steps.version.outputs.version, '-rc') }}
