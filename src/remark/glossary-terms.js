@@ -319,9 +319,23 @@ export default function remarkGlossaryTerms({
     return result.length > 0 ? result : [{ type: 'text', value: text }];
   }
 
+  // Collect text nodes that live inside a heading (h1-h6) so we can skip them.
+  // Headings are excluded from auto-linking because glossary anchors inside
+  // headings clash with the heading's own link/anchor behavior and are noisy.
+  function collectHeadingTextNodes(tree) {
+    const skip = new WeakSet();
+    visit(tree, 'heading', headingNode => {
+      visit(headingNode, 'text', textNode => {
+        skip.add(textNode);
+      });
+    });
+    return skip;
+  }
+
   // Return the transformer function
   const transformer = tree => {
     let usedGlossaryTerm = false;
+    const textNodesInHeadings = collectHeadingTextNodes(tree);
     visit(tree, 'text', (node, index, parent) => {
       // Skip text nodes inside code blocks, links, or existing MDX components
       if (
@@ -331,6 +345,11 @@ export default function remarkGlossaryTerms({
         parent.type === 'mdxJsxFlowElement' ||
         parent.type === 'mdxJsxTextElement'
       ) {
+        return;
+      }
+
+      // Skip text nodes that are descendants of a heading (h1-h6)
+      if (textNodesInHeadings.has(node)) {
         return;
       }
 
