@@ -131,6 +131,33 @@ function validateTerm(term: unknown, index: number): ValidationError[] {
     }
   }
 
+  // Optional: aliases (string[])
+  if ('aliases' in termObj && termObj.aliases !== undefined) {
+    if (!Array.isArray(termObj.aliases)) {
+      errors.push({
+        field: `${prefix}.aliases`,
+        message: `Field "aliases" must be an array, got ${typeof termObj.aliases}`,
+        value: termObj.aliases,
+      });
+    } else {
+      termObj.aliases.forEach((alias, aliasIndex) => {
+        if (typeof alias !== 'string') {
+          errors.push({
+            field: `${prefix}.aliases[${aliasIndex}]`,
+            message: `Alias must be a string, got ${typeof alias}`,
+            value: alias,
+          });
+        } else if (alias.trim() === '') {
+          errors.push({
+            field: `${prefix}.aliases[${aliasIndex}]`,
+            message: 'Alias cannot be empty',
+            value: alias,
+          });
+        }
+      });
+    }
+  }
+
   return errors;
 }
 

@@ -166,12 +166,25 @@ export default function remarkGlossaryTerms({
     }
   }
 
-  // Build a map of terms for efficient lookup, skipping terms with autoLink: false
-  // Key: lowercase term, Value: term object with original case
+  // Build a map of terms for efficient lookup, skipping terms with autoLink: false.
+  // Each entry in the map represents a matchable phrase (canonical term or alias)
+  // and points back to the canonical term object so tooltip/href always use the canonical form.
+  // Key: lowercase phrase, Value: { termObj, matchText } where matchText is what we matched in source
   const termMap = new Map();
   glossaryTerms.forEach(termObj => {
-    if (termObj.term && termObj.autoLink !== false) {
-      termMap.set(termObj.term.toLowerCase(), termObj);
+    if (!termObj.term || termObj.autoLink === false) return;
+
+    const register = phrase => {
+      if (typeof phrase !== 'string' || phrase.trim() === '') return;
+      const key = phrase.toLowerCase();
+      if (!termMap.has(key)) {
+        termMap.set(key, { termObj, matchText: phrase });
+      }
+    };
+
+    register(termObj.term);
+    if (Array.isArray(termObj.aliases)) {
+      termObj.aliases.forEach(register);
     }
   });
 
@@ -199,20 +212,19 @@ export default function remarkGlossaryTerms({
 
     // Find all matches
     const matches = [];
-    for (const [lowerTerm, termObj] of sortedTerms) {
-      const term = termObj.term;
+    for (const [lowerPhrase, { termObj }] of sortedTerms) {
       let searchIndex = 0;
 
       while (searchIndex < textLower.length) {
-        const index = textLower.indexOf(lowerTerm, searchIndex);
+        const index = textLower.indexOf(lowerPhrase, searchIndex);
         if (index === -1) break;
 
         // Check if it's a whole word match, with simple plural tolerance ('s' or 'es')
         const beforeChar = index > 0 ? textLower[index - 1] : ' ';
-        const afterIndex = index + lowerTerm.length;
+        const afterIndex = index + lowerPhrase.length;
         const afterChar = afterIndex < textLower.length ? textLower[afterIndex] : ' ';
 
-        let matchLength = term.length;
+        let matchLength = lowerPhrase.length;
         let isWordBoundary = !/\w/.test(beforeChar) && !/\w/.test(afterChar);
 
         // Allow trailing 's' plural (e.g., webhook -> webhooks)
@@ -220,7 +232,7 @@ export default function remarkGlossaryTerms({
           const nextChar = afterIndex + 1 < textLower.length ? textLower[afterIndex + 1] : ' ';
           if (!/\w/.test(nextChar)) {
             isWordBoundary = true;
-            matchLength = term.length + 1;
+            matchLength = lowerPhrase.length + 1;
           }
         }
 
@@ -234,7 +246,7 @@ export default function remarkGlossaryTerms({
           const nextChar = afterIndex + 2 < textLower.length ? textLower[afterIndex + 2] : ' ';
           if (!/\w/.test(nextChar)) {
             isWordBoundary = true;
-            matchLength = term.length + 2;
+            matchLength = lowerPhrase.length + 2;
           }
         }
 
@@ -242,9 +254,8 @@ export default function remarkGlossaryTerms({
           matches.push({
             index,
             length: matchLength,
-            term: term,
             termObj: termObj,
-            // Store original case from the text
+            // Store original case from the text (what the reader actually wrote)
             originalText: text.substring(index, index + matchLength),
           });
         }

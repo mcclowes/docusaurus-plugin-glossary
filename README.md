@@ -138,6 +138,8 @@ Create a JSON file at `glossary/glossary.json` (or your configured path) in your
 - `abbreviation` (string): The full form if the term is an abbreviation
 - `relatedTerms` (string[]): Array of related term names that link to other glossary entries
 - `id` (string): Custom ID for linking (auto-generated from term name if not provided)
+- `autoLink` (boolean): Set to `false` to opt a term out of automatic linking (default: `true`)
+- `aliases` (string[]): Additional phrases that should also auto-link to this term. Useful for inflections (e.g. `["cleaning", "cleaned"]` for `clean`) or alternate forms. The rendered link and tooltip always use the canonical `term`
 
 ### Step 2: Configure the Plugin
 
