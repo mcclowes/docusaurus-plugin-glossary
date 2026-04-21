@@ -268,4 +268,108 @@ describe('remarkGlossaryTerms', () => {
     expect(glossaryNodes).toHaveLength(1);
     expect(glossaryNodes[0].attributes[0].value).toBe('clean');
   });
+
+  describe('case sensitivity', () => {
+    it('should match terms case-insensitively by default', () => {
+      const transformer = remarkGlossaryTerms({
+        terms: [{ term: 'API', definition: 'Application Programming Interface' }],
+      });
+
+      const tree = makeTree('The api is useful.');
+      transformer(tree);
+      const children = getChildren(tree);
+
+      const glossaryNode = children.find(n => n.name === 'GlossaryTerm');
+      expect(glossaryNode).toBeDefined();
+      expect(glossaryNode.children[0].value).toBe('api');
+    });
+
+    it('should only match exact case when caseSensitive is true', () => {
+      const transformer = remarkGlossaryTerms({
+        terms: [
+          { term: 'REST', definition: 'Representational State Transfer', caseSensitive: true },
+        ],
+      });
+
+      const tree = makeTree('We had a good rest before writing REST endpoints.');
+      transformer(tree);
+      const children = getChildren(tree);
+
+      const glossaryNodes = children.filter(n => n.name === 'GlossaryTerm');
+      expect(glossaryNodes).toHaveLength(1);
+      expect(glossaryNodes[0].children[0].value).toBe('REST');
+    });
+
+    it('should not match lowercase variant when caseSensitive is true', () => {
+      const transformer = remarkGlossaryTerms({
+        terms: [
+          { term: 'REST', definition: 'Representational State Transfer', caseSensitive: true },
+        ],
+      });
+
+      const tree = makeTree('Take a rest.');
+      transformer(tree);
+      const children = getChildren(tree);
+
+      const glossaryNodes = children.filter(n => n.name === 'GlossaryTerm');
+      expect(glossaryNodes).toHaveLength(0);
+    });
+
+    it('should treat aliases as case-sensitive when caseSensitive is true', () => {
+      const transformer = remarkGlossaryTerms({
+        terms: [
+          {
+            term: 'REST',
+            definition: 'Representational State Transfer',
+            aliases: ['RESTful'],
+            caseSensitive: true,
+          },
+        ],
+      });
+
+      const tree = makeTree('A restful sleep is not a RESTful API.');
+      transformer(tree);
+      const children = getChildren(tree);
+
+      const glossaryNodes = children.filter(n => n.name === 'GlossaryTerm');
+      expect(glossaryNodes).toHaveLength(1);
+      expect(glossaryNodes[0].children[0].value).toBe('RESTful');
+    });
+
+    it('should mix case-sensitive and case-insensitive terms in the same document', () => {
+      const transformer = remarkGlossaryTerms({
+        terms: [
+          { term: 'REST', definition: 'Representational State Transfer', caseSensitive: true },
+          { term: 'API', definition: 'Application Programming Interface' },
+        ],
+      });
+
+      const tree = makeTree('A REST api and some rest.');
+      transformer(tree);
+      const children = getChildren(tree);
+
+      const glossaryNodes = children.filter(n => n.name === 'GlossaryTerm');
+      expect(glossaryNodes).toHaveLength(2);
+      expect(glossaryNodes[0].attributes[0].value).toBe('REST');
+      expect(glossaryNodes[0].children[0].value).toBe('REST');
+      expect(glossaryNodes[1].attributes[0].value).toBe('API');
+      expect(glossaryNodes[1].children[0].value).toBe('api');
+    });
+
+    it('should still allow plural forms with case-sensitive terms', () => {
+      const transformer = remarkGlossaryTerms({
+        terms: [
+          { term: 'REST', definition: 'Representational State Transfer', caseSensitive: true },
+        ],
+      });
+
+      const tree = makeTree('We use RESTs everywhere.');
+      transformer(tree);
+      const children = getChildren(tree);
+
+      const glossaryNodes = children.filter(n => n.name === 'GlossaryTerm');
+      expect(glossaryNodes).toHaveLength(1);
+      expect(glossaryNodes[0].children[0].value).toBe('RESTs');
+    });
+  });
 });

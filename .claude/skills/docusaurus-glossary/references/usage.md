@@ -20,7 +20,7 @@ Terms like "API" and "REST" will automatically be:
 - Only whole words are matched (respects word boundaries)
 - Terms inside code blocks, links, or existing MDX components are NOT processed
 - Terms inside headings (`h1`–`h6`) are NOT auto-linked
-- Matching is case-insensitive
+- Matching is case-insensitive by default; set `"caseSensitive": true` on a term to match only its exact casing (useful for acronyms like `REST` that collide with common words)
 
 ### Matching multiple word forms
 
@@ -39,6 +39,10 @@ The rendered link and tooltip always use the canonical `term`, but the reader se
 ### Opting a term out of auto-linking
 
 Set `"autoLink": false` on a term to keep it in the glossary page but skip auto-detection in markdown. Useful for terms that produce too many false positives. You can still reference the term manually with `<GlossaryTerm term="..." />`.
+
+### Case-sensitive matching
+
+Set `"caseSensitive": true` on a term to match only its exact casing. Useful for acronyms that share spelling with common words — e.g. a case-sensitive `REST` entry matches `REST` and `RESTful` but ignores `rest` ("take a rest"). Applies to the term and all its aliases.
 
 ## Manual Component Usage
 

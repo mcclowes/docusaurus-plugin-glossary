@@ -229,6 +229,29 @@ describe('validateGlossaryData', () => {
       expect(result.errors[0].field).toBe('terms[0].autoLink');
       expect(result.errors[0].message).toContain('must be a boolean');
     });
+
+    it('should accept boolean caseSensitive', () => {
+      const data = {
+        terms: [{ term: 'REST', definition: 'Test', caseSensitive: true }],
+      };
+
+      const result = validateGlossaryData(data, { throwOnError: false });
+
+      expect(result.valid).toBe(true);
+      expect(result.errors).toHaveLength(0);
+    });
+
+    it('should reject non-boolean caseSensitive', () => {
+      const data = {
+        terms: [{ term: 'REST', definition: 'Test', caseSensitive: 'yes' }],
+      };
+
+      const result = validateGlossaryData(data, { throwOnError: false });
+
+      expect(result.valid).toBe(false);
+      expect(result.errors[0].field).toBe('terms[0].caseSensitive');
+      expect(result.errors[0].message).toContain('must be a boolean');
+    });
   });
 
   describe('duplicate detection', () => {

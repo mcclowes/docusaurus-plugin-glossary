@@ -131,6 +131,17 @@ function validateTerm(term: unknown, index: number): ValidationError[] {
     }
   }
 
+  // Optional: caseSensitive (boolean)
+  if ('caseSensitive' in termObj && termObj.caseSensitive !== undefined) {
+    if (typeof termObj.caseSensitive !== 'boolean') {
+      errors.push({
+        field: `${prefix}.caseSensitive`,
+        message: `Field "caseSensitive" must be a boolean, got ${typeof termObj.caseSensitive}`,
+        value: termObj.caseSensitive,
+      });
+    }
+  }
+
   // Optional: aliases (string[])
   if ('aliases' in termObj && termObj.aliases !== undefined) {
     if (!Array.isArray(termObj.aliases)) {
