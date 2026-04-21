@@ -9,19 +9,20 @@ test.describe('Glossary Plugin', () => {
       await expect(page.locator('h1')).toContainText('Glossary');
 
       // Check that terms are displayed
-      await expect(page.locator('dt')).toHaveCount(3); // API, REST, Webhook
+      await expect(page.locator('dt')).toHaveCount(4); // API, Deploy, REST, Webhook
 
       // Verify specific terms exist by targeting dt elements specifically
       await expect(page.locator('dt').filter({ hasText: 'API' })).toBeVisible();
       await expect(page.locator('dt').filter({ hasText: 'REST' })).toBeVisible();
       await expect(page.locator('dt').filter({ hasText: 'Webhook' })).toBeVisible();
+      await expect(page.locator('dt').filter({ hasText: 'Deploy' })).toBeVisible();
 
       // Check that definitions are displayed
       await expect(page.getByText(/A set of rules and protocols/)).toBeVisible();
       await expect(page.getByText(/An architectural style for designing/)).toBeVisible();
 
       // Check total terms count in footer
-      await expect(page.getByText('Total terms: 3')).toBeVisible();
+      await expect(page.getByText('Total terms: 4')).toBeVisible();
     });
 
     test('should have letter navigation', async ({ page }) => {
@@ -29,10 +30,11 @@ test.describe('Glossary Plugin', () => {
 
       // Check that letter navigation exists - target nav links with href starting with #letter-
       const letterNav = page.locator('nav a[href^="#letter-"]');
-      await expect(letterNav).toHaveCount(3); // A, R, W
+      await expect(letterNav).toHaveCount(4); // A, D, R, W
 
       // Verify specific letters
       await expect(page.locator('a[href="#letter-A"]')).toBeVisible();
+      await expect(page.locator('a[href="#letter-D"]')).toBeVisible();
       await expect(page.locator('a[href="#letter-R"]')).toBeVisible();
       await expect(page.locator('a[href="#letter-W"]')).toBeVisible();
     });
@@ -54,7 +56,7 @@ test.describe('Glossary Plugin', () => {
 
       // Clear search
       await searchInput.clear();
-      await expect(page.locator('dt')).toHaveCount(3);
+      await expect(page.locator('dt')).toHaveCount(4);
     });
 
     test('should show abbreviations', async ({ page }) => {
@@ -122,7 +124,8 @@ test.describe('Glossary Plugin', () => {
       const apiLinks = page.locator('a[href*="/glossary#api"]');
       await expect(apiLinks).toHaveCount(2); // API appears twice in the content
       await expect(page.locator('a[href*="/glossary#rest"]')).toHaveCount(2); // REST appears twice in the content
-      await expect(page.locator('a[href*="/glossary#webhook"]')).toHaveCount(2); // Webhook appears twice in the content
+      // Webhook has autoLink: false, so it should NOT be auto-linked despite appearing in the content
+      await expect(page.locator('a[href*="/glossary#webhook"]')).toHaveCount(0);
 
       // Hover over REST term
       const restLink = page.locator('a[href*="/glossary#rest"]').first();
