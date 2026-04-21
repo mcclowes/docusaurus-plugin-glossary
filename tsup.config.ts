@@ -21,6 +21,7 @@ export default defineConfig({
   sourcemap: true,
   clean: true,
   target: 'es2020',
+  shims: true,
   external: [
     '@docusaurus/ExecutionEnvironment',
     '@docusaurus/BrowserOnly',
