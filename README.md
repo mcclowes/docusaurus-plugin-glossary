@@ -140,6 +140,7 @@ Create a JSON file at `glossary/glossary.json` (or your configured path) in your
 - `id` (string): Custom ID for linking (auto-generated from term name if not provided)
 - `autoLink` (boolean): Set to `false` to opt a term out of automatic linking (default: `true`)
 - `aliases` (string[]): Additional phrases that should also auto-link to this term. Useful for inflections (e.g. `["cleaning", "cleaned"]` for `clean`) or alternate forms. The rendered link and tooltip always use the canonical `term`
+- `caseSensitive` (boolean): Set to `true` to match only the exact case of `term` and its `aliases` (default: `false`). Useful for acronyms that share spelling with common words (e.g. `REST` should not match `rest`)
 
 ### Step 2: Configure the Plugin
 

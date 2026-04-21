@@ -167,18 +167,20 @@ export default function remarkGlossaryTerms({
   }
 
   // Build a map of terms for efficient lookup, skipping terms with autoLink: false.
-  // Each entry in the map represents a matchable phrase (canonical term or alias)
-  // and points back to the canonical term object so tooltip/href always use the canonical form.
-  // Key: lowercase phrase, Value: { termObj, matchText } where matchText is what we matched in source
+  // Each entry represents a matchable phrase (canonical term or alias) and points
+  // back to the canonical term object so tooltip/href always use the canonical form.
+  // Key: lowercase phrase, Value: { termObj, phrase, caseSensitive } where
+  // `phrase` preserves the original case (used for case-sensitive matching).
   const termMap = new Map();
   glossaryTerms.forEach(termObj => {
     if (!termObj.term || termObj.autoLink === false) return;
+    const caseSensitive = termObj.caseSensitive === true;
 
     const register = phrase => {
       if (typeof phrase !== 'string' || phrase.trim() === '') return;
       const key = phrase.toLowerCase();
       if (!termMap.has(key)) {
-        termMap.set(key, { termObj, matchText: phrase });
+        termMap.set(key, { termObj, phrase, caseSensitive });
       }
     };
 
@@ -212,19 +214,25 @@ export default function remarkGlossaryTerms({
 
     // Find all matches
     const matches = [];
-    for (const [lowerPhrase, { termObj }] of sortedTerms) {
+    for (const [lowerPhrase, { termObj, phrase, caseSensitive }] of sortedTerms) {
+      // Case-sensitive terms search the original text for the exact casing;
+      // case-insensitive terms search the lowercased text for the lowercased phrase.
+      const haystack = caseSensitive ? text : textLower;
+      const needle = caseSensitive ? phrase : lowerPhrase;
       let searchIndex = 0;
 
-      while (searchIndex < textLower.length) {
-        const index = textLower.indexOf(lowerPhrase, searchIndex);
+      while (searchIndex < haystack.length) {
+        const index = haystack.indexOf(needle, searchIndex);
         if (index === -1) break;
 
-        // Check if it's a whole word match, with simple plural tolerance ('s' or 'es')
+        // Check if it's a whole word match, with simple plural tolerance ('s' or 'es').
+        // Word-boundary detection uses the lowercased text so letter-class checks
+        // behave consistently regardless of the term's case-sensitivity setting.
         const beforeChar = index > 0 ? textLower[index - 1] : ' ';
-        const afterIndex = index + lowerPhrase.length;
+        const afterIndex = index + needle.length;
         const afterChar = afterIndex < textLower.length ? textLower[afterIndex] : ' ';
 
-        let matchLength = lowerPhrase.length;
+        let matchLength = needle.length;
         let isWordBoundary = !/\w/.test(beforeChar) && !/\w/.test(afterChar);
 
         // Allow trailing 's' plural (e.g., webhook -> webhooks)
@@ -232,7 +240,7 @@ export default function remarkGlossaryTerms({
           const nextChar = afterIndex + 1 < textLower.length ? textLower[afterIndex + 1] : ' ';
           if (!/\w/.test(nextChar)) {
             isWordBoundary = true;
-            matchLength = lowerPhrase.length + 1;
+            matchLength = needle.length + 1;
           }
         }
 
@@ -246,7 +254,7 @@ export default function remarkGlossaryTerms({
           const nextChar = afterIndex + 2 < textLower.length ? textLower[afterIndex + 2] : ' ';
           if (!/\w/.test(nextChar)) {
             isWordBoundary = true;
-            matchLength = lowerPhrase.length + 2;
+            matchLength = needle.length + 2;
           }
         }
 

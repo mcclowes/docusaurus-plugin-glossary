@@ -29,6 +29,7 @@ export interface GlossaryTerm {
   id?: string;
   autoLink?: boolean;
   aliases?: string[];
+  caseSensitive?: boolean;
 }
 
 export interface GlossaryData {
