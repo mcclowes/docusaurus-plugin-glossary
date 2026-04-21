@@ -159,4 +159,113 @@ describe('remarkGlossaryTerms', () => {
     expect(glossaryNodes).toHaveLength(1);
     expect(glossaryNodes[0].attributes[0].value).toBe('REST');
   });
+
+  it('should match aliases and link them to the canonical term', () => {
+    const transformer = remarkGlossaryTerms({
+      terms: [
+        {
+          term: 'clean',
+          definition: 'Free from dirt',
+          aliases: ['cleaning', 'cleaned'],
+        },
+      ],
+    });
+
+    const tree = makeTree('She was cleaning the room after it was cleaned.');
+    transformer(tree);
+    const children = getChildren(tree);
+
+    const glossaryNodes = children.filter(n => n.name === 'GlossaryTerm');
+    expect(glossaryNodes).toHaveLength(2);
+
+    // Both nodes should point at the canonical term "clean"
+    expect(glossaryNodes[0].attributes[0].value).toBe('clean');
+    expect(glossaryNodes[1].attributes[0].value).toBe('clean');
+
+    // Display text preserves what the author wrote
+    expect(glossaryNodes[0].children[0].value).toBe('cleaning');
+    expect(glossaryNodes[1].children[0].value).toBe('cleaned');
+  });
+
+  it('should match the canonical term even when aliases are defined', () => {
+    const transformer = remarkGlossaryTerms({
+      terms: [
+        {
+          term: 'clean',
+          definition: 'Free from dirt',
+          aliases: ['cleaning'],
+        },
+      ],
+    });
+
+    const tree = makeTree('Keep it clean.');
+    transformer(tree);
+    const children = getChildren(tree);
+
+    const glossaryNodes = children.filter(n => n.name === 'GlossaryTerm');
+    expect(glossaryNodes).toHaveLength(1);
+    expect(glossaryNodes[0].attributes[0].value).toBe('clean');
+    expect(glossaryNodes[0].children[0].value).toBe('clean');
+  });
+
+  it('should not match aliases when autoLink is false', () => {
+    const transformer = remarkGlossaryTerms({
+      terms: [
+        {
+          term: 'clean',
+          definition: 'Free from dirt',
+          aliases: ['cleaning'],
+          autoLink: false,
+        },
+      ],
+    });
+
+    const tree = makeTree('She was cleaning the clean room.');
+    transformer(tree);
+    const children = getChildren(tree);
+
+    expect(children).toHaveLength(1);
+    expect(children[0].type).toBe('text');
+  });
+
+  it('should prefer the longest match when aliases overlap the canonical term', () => {
+    const transformer = remarkGlossaryTerms({
+      terms: [
+        {
+          term: 'API',
+          definition: 'Application Programming Interface',
+          aliases: ['Application Programming Interface'],
+        },
+      ],
+    });
+
+    const tree = makeTree('The Application Programming Interface is useful.');
+    transformer(tree);
+    const children = getChildren(tree);
+
+    const glossaryNodes = children.filter(n => n.name === 'GlossaryTerm');
+    expect(glossaryNodes).toHaveLength(1);
+    expect(glossaryNodes[0].attributes[0].value).toBe('API');
+    expect(glossaryNodes[0].children[0].value).toBe('Application Programming Interface');
+  });
+
+  it('should ignore empty or non-string aliases without crashing', () => {
+    const transformer = remarkGlossaryTerms({
+      terms: [
+        {
+          term: 'clean',
+          definition: 'Free from dirt',
+          aliases: ['cleaning', '', '   '],
+        },
+      ],
+    });
+
+    const tree = makeTree('cleaning');
+    transformer(tree);
+    const children = getChildren(tree);
+
+    const glossaryNodes = children.filter(n => n.name === 'GlossaryTerm');
+    expect(glossaryNodes).toHaveLength(1);
+    expect(glossaryNodes[0].attributes[0].value).toBe('clean');
+  });
 });

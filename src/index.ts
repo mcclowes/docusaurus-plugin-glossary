@@ -28,6 +28,7 @@ export interface GlossaryTerm {
   relatedTerms?: string[];
   id?: string;
   autoLink?: boolean;
+  aliases?: string[];
 }
 
 export interface GlossaryData {

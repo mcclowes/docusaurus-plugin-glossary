@@ -19,7 +19,26 @@ Terms like "API" and "REST" will automatically be:
 
 - Only whole words are matched (respects word boundaries)
 - Terms inside code blocks, links, or existing MDX components are NOT processed
+- Terms inside headings (`h1`–`h6`) are NOT auto-linked
 - Matching is case-insensitive
+
+### Matching multiple word forms
+
+Use the `aliases` field to link multiple forms of a term to a single glossary entry:
+
+```json
+{
+  "term": "deploy",
+  "definition": "Push a change to a running environment.",
+  "aliases": ["deployment", "deploying", "deployed", "redeploy"]
+}
+```
+
+The rendered link and tooltip always use the canonical `term`, but the reader sees the original word they wrote. Simple plural forms (`s`, `es`) are already matched automatically; use `aliases` for irregular inflections or synonyms.
+
+### Opting a term out of auto-linking
+
+Set `"autoLink": false` on a term to keep it in the glossary page but skip auto-detection in markdown. Useful for terms that produce too many false positives. You can still reference the term manually with `<GlossaryTerm term="..." />`.
 
 ## Manual Component Usage
 
