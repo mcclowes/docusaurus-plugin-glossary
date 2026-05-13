@@ -93,6 +93,58 @@ describe('GlossaryPage', () => {
     expect(screen.queryByText('REST')).not.toBeInTheDocument();
   });
 
+  it('should filter by alias', async () => {
+    const user = userEvent.setup();
+    const dataWithAliases = {
+      terms: [
+        {
+          id: 'tokenize',
+          term: 'Tokenize',
+          definition: 'Replace sensitive data with a non-sensitive equivalent.',
+          aliases: ['tokenization', 'tokenisation', 'tokenized', 'tokenise'],
+        },
+        {
+          id: 'ml',
+          term: 'Machine Learning',
+          definition: 'A type of artificial intelligence',
+        },
+      ],
+    };
+    render(<GlossaryPage glossaryData={dataWithAliases} />);
+
+    const searchInput = screen.getByPlaceholderText('Search terms...');
+    await user.type(searchInput, 'tokenization');
+
+    expect(screen.getByText('Tokenize')).toBeInTheDocument();
+    expect(screen.queryByText('Machine Learning')).not.toBeInTheDocument();
+  });
+
+  it('should filter by abbreviation', async () => {
+    const user = userEvent.setup();
+    const dataWithAbbrev = {
+      terms: [
+        {
+          id: 'pan',
+          term: 'Primary Account Number',
+          definition: 'The 16-digit number on a payment card.',
+          abbreviation: 'PAN',
+        },
+        {
+          id: 'ml',
+          term: 'Machine Learning',
+          definition: 'A type of artificial intelligence',
+        },
+      ],
+    };
+    render(<GlossaryPage glossaryData={dataWithAbbrev} />);
+
+    const searchInput = screen.getByPlaceholderText('Search terms...');
+    await user.type(searchInput, 'PAN');
+
+    expect(screen.getByText('Primary Account Number')).toBeInTheDocument();
+    expect(screen.queryByText('Machine Learning')).not.toBeInTheDocument();
+  });
+
   it('should show no results message when no matches', async () => {
     const user = userEvent.setup();
     render(<GlossaryPage glossaryData={mockGlossaryData} />);

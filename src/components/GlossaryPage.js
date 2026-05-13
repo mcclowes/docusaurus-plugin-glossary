@@ -39,11 +39,13 @@ export default function GlossaryPage({ glossaryData }) {
     if (!searchTerm) return terms;
 
     const lowerSearch = searchTerm.toLowerCase();
-    return terms.filter(
-      term =>
-        term.term.toLowerCase().includes(lowerSearch) ||
-        term.definition.toLowerCase().includes(lowerSearch)
-    );
+    return terms.filter(term => {
+      const haystack = [term.term, term.definition, term.abbreviation, ...(term.aliases || [])]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase();
+      return haystack.includes(lowerSearch);
+    });
   }, [terms, searchTerm]);
 
   // Group terms by first letter

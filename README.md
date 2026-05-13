@@ -12,7 +12,7 @@ A comprehensive Docusaurus plugin that provides glossary functionality with an a
 ## Features
 
 - **Auto-generated Glossary Page**: Displays all terms alphabetically with letter navigation
-- **Search Functionality**: Real-time search across terms and definitions
+- **Search Functionality**: Real-time search across terms, definitions, abbreviations, and aliases
 - **GlossaryTerm Component**: Inline component for linking terms with tooltip previews
 - **Automatic Term Detection**: Automatically detect and link glossary terms in markdown files with tooltips
 - **Responsive Design**: Mobile-friendly UI with dark mode support
@@ -381,7 +381,7 @@ The glossary page is automatically available at `/glossary` (or your configured 
 **Features:**
 
 - Alphabetical grouping with letter navigation
-- Real-time search across terms and definitions
+- Real-time search across terms, definitions, abbreviations, and aliases
 - Clickable related terms
 - Responsive design
 - Dark mode support

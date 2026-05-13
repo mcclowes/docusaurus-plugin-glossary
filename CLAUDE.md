@@ -65,3 +65,14 @@ See `AGENTS.md` for Claude Code skills specific to this project:
 - `docusaurus-plugins` - Remark/rehype plugin creation
 - `docusaurus-config` - Docusaurus configuration
 - `docusaurus-themes` - Theme component swizzling
+
+## Shared docs site
+
+User-facing changes in this repo should also be reflected in the shared documentation site at `~/Development/docusaurus/docusaurus-plugins-docs/` (separate repo; documents and dogfoods every plugin in this family).
+
+After a change that a consumer can observe — new option, changed default, renamed export, new/removed hook, changed behavior — update both:
+
+- `README.md` here (canonical API reference)
+- `docs/glossary/` in `docusaurus-plugins-docs`, at minimum `configuration.md`; also `overview.md` / `getting-started.md` / `component.md` / the relevant `advanced/*.md` (auto-linking, manual configuration, customization) when the change reaches those topics
+
+Internal refactors, test-only changes, and build tweaks don't need docs-site updates.
