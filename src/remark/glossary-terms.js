@@ -73,6 +73,9 @@ const CACHE_TTL = 5000; // 5 seconds TTL to allow for file changes during dev
  * @param {string} options.glossaryPath - Path to glossary JSON file (optional, if terms not provided)
  * @param {string} options.routePath - Route path to glossary page (default: '/glossary')
  * @param {string} options.siteDir - Docusaurus site directory (required if using glossaryPath)
+ * @param {boolean} options.expandAcronymsOnFirstUse - When true, the first canonical occurrence of a
+ *   term with an `abbreviation` is rendered as "Long Form (Term)" instead of just "Term".
+ *   Subsequent occurrences in the same file render unchanged. Default: false.
  * @returns {function} Remark plugin function
  */
 export default function remarkGlossaryTerms({
@@ -80,6 +83,7 @@ export default function remarkGlossaryTerms({
   glossaryPath = null,
   routePath = '/glossary',
   siteDir = null,
+  expandAcronymsOnFirstUse = false,
 } = {}) {
   let glossaryTerms = terms;
 
@@ -202,8 +206,12 @@ export default function remarkGlossaryTerms({
   /**
    * Recursively replace glossary terms in text
    * Returns an array of text nodes and MDX components
+   *
+   * @param {string} text - Source text to scan
+   * @param {Set<string>} seenTerms - Per-file set tracking which canonical terms have already been
+   *   rendered (used by expandAcronymsOnFirstUse to expand only on first occurrence).
    */
-  function replaceTermsInText(text) {
+  function replaceTermsInText(text, seenTerms) {
     if (!text || !sortedTerms.length) {
       return [{ type: 'text', value: text }];
     }
@@ -295,6 +303,12 @@ export default function remarkGlossaryTerms({
         });
       }
 
+      const displayText = resolveDisplayText(match, text, seenTerms);
+      // Mark this term as seen regardless of whether we expanded — once the reader
+      // has encountered any occurrence (canonical or otherwise), the introduction
+      // window has closed.
+      seenTerms.add(match.termObj.term);
+
       // Add MDX component for glossary term
       result.push({
         type: 'mdxJsxFlowElement',
@@ -319,7 +333,7 @@ export default function remarkGlossaryTerms({
         children: [
           {
             type: 'text',
-            value: match.originalText,
+            value: displayText,
           },
         ],
       });
@@ -336,6 +350,34 @@ export default function remarkGlossaryTerms({
     }
 
     return result.length > 0 ? result : [{ type: 'text', value: text }];
+  }
+
+  // Decide what text to render inside the GlossaryTerm element.
+  // Default: the text as written. When expandAcronymsOnFirstUse is enabled and this is the
+  // first canonical occurrence of a term that has an `abbreviation`, expand to
+  // "Long Form (Term)" — unless the long form already appears immediately before the match
+  // (e.g. the author wrote "Payment Service Provider (PSP)" themselves).
+  function resolveDisplayText(match, text, seenTerms) {
+    const termObj = match.termObj;
+    if (!expandAcronymsOnFirstUse) return match.originalText;
+    if (!termObj.abbreviation) return match.originalText;
+    if (seenTerms.has(termObj.term)) return match.originalText;
+
+    // Only canonical matches — no aliases, no plural forms.
+    const isCanonical =
+      match.length === termObj.term.length &&
+      match.originalText.toLowerCase() === termObj.term.toLowerCase();
+    if (!isCanonical) return match.originalText;
+
+    // If the long form is already present in the lookback window, skip expansion to
+    // avoid "Payment Service Provider (Payment Service Provider (PSP))".
+    const longForm = termObj.abbreviation;
+    const lookbackWindow = longForm.length + 10;
+    const lookbackStart = Math.max(0, match.index - lookbackWindow);
+    const lookback = text.substring(lookbackStart, match.index).toLowerCase();
+    if (lookback.includes(longForm.toLowerCase())) return match.originalText;
+
+    return `${longForm} (${match.originalText})`;
   }
 
   // Collect text nodes that live inside a heading (h1-h6) so we can skip them.
@@ -355,6 +397,9 @@ export default function remarkGlossaryTerms({
   const transformer = tree => {
     let usedGlossaryTerm = false;
     const textNodesInHeadings = collectHeadingTextNodes(tree);
+    // Per-file tracking: each transformer invocation gets a fresh Set so acronym
+    // expansion fires at most once per term per file.
+    const seenTerms = new Set();
     visit(tree, 'text', (node, index, parent) => {
       // Skip text nodes inside code blocks, links, or existing MDX components
       if (
@@ -373,7 +418,7 @@ export default function remarkGlossaryTerms({
       }
 
       // Replace terms in text node
-      const replacements = replaceTermsInText(node.value);
+      const replacements = replaceTermsInText(node.value, seenTerms);
 
       // If we have replacements, replace the single text node with multiple nodes
       if (

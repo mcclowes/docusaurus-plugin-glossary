@@ -372,4 +372,174 @@ describe('remarkGlossaryTerms', () => {
       expect(glossaryNodes[0].children[0].value).toBe('RESTs');
     });
   });
+
+  describe('expandAcronymsOnFirstUse', () => {
+    const psp = {
+      term: 'PSP',
+      abbreviation: 'Payment Service Provider',
+      definition: 'A company that provides payment processing services.',
+    };
+
+    it('should not expand when option is disabled (default)', () => {
+      const transformer = remarkGlossaryTerms({ terms: [psp] });
+
+      const tree = makeTree('The PSP charges a fee.');
+      transformer(tree);
+      const glossaryNode = getChildren(tree).find(n => n.name === 'GlossaryTerm');
+
+      expect(glossaryNode).toBeDefined();
+      expect(glossaryNode.children[0].value).toBe('PSP');
+    });
+
+    it('should expand the first canonical match to "Long Form (Term)"', () => {
+      const transformer = remarkGlossaryTerms({
+        terms: [psp],
+        expandAcronymsOnFirstUse: true,
+      });
+
+      const tree = makeTree('The PSP charges a fee.');
+      transformer(tree);
+      const glossaryNode = getChildren(tree).find(n => n.name === 'GlossaryTerm');
+
+      expect(glossaryNode).toBeDefined();
+      expect(glossaryNode.attributes.find(a => a.name === 'term').value).toBe('PSP');
+      expect(glossaryNode.children[0].value).toBe('Payment Service Provider (PSP)');
+    });
+
+    it('should only expand the first occurrence per file', () => {
+      const transformer = remarkGlossaryTerms({
+        terms: [psp],
+        expandAcronymsOnFirstUse: true,
+      });
+
+      const tree = {
+        type: 'root',
+        children: [
+          {
+            type: 'paragraph',
+            children: [{ type: 'text', value: 'The PSP is set up.' }],
+          },
+          {
+            type: 'paragraph',
+            children: [{ type: 'text', value: 'Configure the PSP later.' }],
+          },
+        ],
+      };
+
+      transformer(tree);
+
+      const paragraphs = tree.children.filter(n => n.type === 'paragraph');
+      const firstNode = paragraphs[0].children.find(n => n.name === 'GlossaryTerm');
+      const secondNode = paragraphs[1].children.find(n => n.name === 'GlossaryTerm');
+
+      expect(firstNode.children[0].value).toBe('Payment Service Provider (PSP)');
+      expect(secondNode.children[0].value).toBe('PSP');
+    });
+
+    it('should not expand terms without abbreviation', () => {
+      const transformer = remarkGlossaryTerms({
+        terms: [{ term: 'Webhook', definition: 'An HTTP callback.' }],
+        expandAcronymsOnFirstUse: true,
+      });
+
+      const tree = makeTree('Configure a Webhook.');
+      transformer(tree);
+      const glossaryNode = getChildren(tree).find(n => n.name === 'GlossaryTerm');
+
+      expect(glossaryNode.children[0].value).toBe('Webhook');
+    });
+
+    it('should not expand aliases (only canonical term)', () => {
+      const transformer = remarkGlossaryTerms({
+        terms: [
+          {
+            term: 'PSP',
+            abbreviation: 'Payment Service Provider',
+            definition: 'x',
+            aliases: ['payment provider'],
+          },
+        ],
+        expandAcronymsOnFirstUse: true,
+      });
+
+      const tree = makeTree('The payment provider charges a fee.');
+      transformer(tree);
+      const glossaryNode = getChildren(tree).find(n => n.name === 'GlossaryTerm');
+
+      expect(glossaryNode.children[0].value).toBe('payment provider');
+    });
+
+    it('should not expand plural forms', () => {
+      const transformer = remarkGlossaryTerms({
+        terms: [psp],
+        expandAcronymsOnFirstUse: true,
+      });
+
+      const tree = makeTree('Multiple PSPs are available.');
+      transformer(tree);
+      const glossaryNode = getChildren(tree).find(n => n.name === 'GlossaryTerm');
+
+      expect(glossaryNode.children[0].value).toBe('PSPs');
+    });
+
+    it('should skip expansion if long form already appears immediately before', () => {
+      const transformer = remarkGlossaryTerms({
+        terms: [psp],
+        expandAcronymsOnFirstUse: true,
+      });
+
+      const tree = makeTree('The Payment Service Provider (PSP) is configured.');
+      transformer(tree);
+      const glossaryNodes = getChildren(tree).filter(n => n.name === 'GlossaryTerm');
+
+      expect(glossaryNodes).toHaveLength(1);
+      expect(glossaryNodes[0].children[0].value).toBe('PSP');
+    });
+
+    it('should expand case-insensitive canonical match', () => {
+      const transformer = remarkGlossaryTerms({
+        terms: [psp],
+        expandAcronymsOnFirstUse: true,
+      });
+
+      const tree = makeTree('The psp processes payments.');
+      transformer(tree);
+      const glossaryNode = getChildren(tree).find(n => n.name === 'GlossaryTerm');
+
+      expect(glossaryNode.children[0].value).toBe('Payment Service Provider (psp)');
+    });
+
+    it('should respect autoLink: false (no expansion if term is opted out)', () => {
+      const transformer = remarkGlossaryTerms({
+        terms: [{ ...psp, autoLink: false }],
+        expandAcronymsOnFirstUse: true,
+      });
+
+      const tree = makeTree('The PSP charges a fee.');
+      transformer(tree);
+      const children = getChildren(tree);
+
+      expect(children).toHaveLength(1);
+      expect(children[0].type).toBe('text');
+    });
+
+    it('should reset state between separate transformer invocations (per-file scope)', () => {
+      const transformer = remarkGlossaryTerms({
+        terms: [psp],
+        expandAcronymsOnFirstUse: true,
+      });
+
+      const treeA = makeTree('The PSP is configured.');
+      const treeB = makeTree('Configure the PSP.');
+
+      transformer(treeA);
+      transformer(treeB);
+
+      const nodeA = getChildren(treeA).find(n => n.name === 'GlossaryTerm');
+      const nodeB = getChildren(treeB).find(n => n.name === 'GlossaryTerm');
+
+      expect(nodeA.children[0].value).toBe('Payment Service Provider (PSP)');
+      expect(nodeB.children[0].value).toBe('Payment Service Provider (PSP)');
+    });
+  });
 });

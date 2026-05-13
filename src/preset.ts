@@ -126,10 +126,17 @@ export default function preset(context: LoadContext, options: GlossaryPresetOpti
   if (sitemap !== undefined) classicOptions.sitemap = sitemap;
   if (debug !== undefined) classicOptions.debug = debug;
 
-  const { glossaryPath = 'glossary/glossary.json', routePath = '/glossary' } = glossary;
+  const {
+    glossaryPath = 'glossary/glossary.json',
+    routePath = '/glossary',
+    expandAcronymsOnFirstUse = false,
+  } = glossary;
 
   // Get the remark plugin configuration
-  const remarkPlugin = getRemarkPlugin({ glossaryPath, routePath }, { siteDir: context.siteDir });
+  const remarkPlugin = getRemarkPlugin(
+    { glossaryPath, routePath, expandAcronymsOnFirstUse },
+    { siteDir: context.siteDir }
+  );
 
   // Extend docs configuration with glossary remark plugin
   const docsConfig = classicOptions.docs || {};

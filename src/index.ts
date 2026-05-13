@@ -19,6 +19,13 @@ export interface GlossaryPluginOptions {
   glossaryPath?: string;
   routePath?: string;
   autoLinkTerms?: boolean;
+  /**
+   * When true, the first canonical occurrence of any term that has an `abbreviation` is
+   * rendered as "Long Form (Term)" instead of just "Term", enforcing the convention of
+   * introducing an acronym on first use. Subsequent occurrences in the same file render
+   * normally. Default: false.
+   */
+  expandAcronymsOnFirstUse?: boolean;
 }
 
 export interface GlossaryTerm {
@@ -229,8 +236,20 @@ export {
 export function getRemarkPlugin(
   pluginOptions: GlossaryPluginOptions,
   context?: { siteDir?: string }
-): [typeof remarkGlossaryTerms, { glossaryPath: string; routePath: string; siteDir?: string }] {
-  const { glossaryPath = 'glossary/glossary.json', routePath = '/glossary' } = pluginOptions;
+): [
+  typeof remarkGlossaryTerms,
+  {
+    glossaryPath: string;
+    routePath: string;
+    siteDir?: string;
+    expandAcronymsOnFirstUse: boolean;
+  },
+] {
+  const {
+    glossaryPath = 'glossary/glossary.json',
+    routePath = '/glossary',
+    expandAcronymsOnFirstUse = false,
+  } = pluginOptions;
 
   const siteDir = context?.siteDir;
 
@@ -240,6 +259,7 @@ export function getRemarkPlugin(
       glossaryPath,
       routePath,
       siteDir,
+      expandAcronymsOnFirstUse,
     },
   ];
 }

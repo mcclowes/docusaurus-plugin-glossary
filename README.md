@@ -405,10 +405,26 @@ module.exports = {
 
 ## Configuration Options
 
-| Option         | Type   | Default                    | Description                                           |
-| -------------- | ------ | -------------------------- | ----------------------------------------------------- |
-| `glossaryPath` | string | `'glossary/glossary.json'` | Path to glossary JSON file relative to site directory |
-| `routePath`    | string | `'/glossary'`              | URL path for glossary page                            |
+| Option                     | Type    | Default                    | Description                                                                                                              |
+| -------------------------- | ------- | -------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `glossaryPath`             | string  | `'glossary/glossary.json'` | Path to glossary JSON file relative to site directory                                                                    |
+| `routePath`                | string  | `'/glossary'`              | URL path for glossary page                                                                                               |
+| `expandAcronymsOnFirstUse` | boolean | `false`                    | When `true`, expand the first canonical occurrence of any term that has an `abbreviation` to "Long Form (Term)" per file |
+
+### Auto-expanding acronyms on first use
+
+When `expandAcronymsOnFirstUse` is enabled, the remark plugin rewrites the first canonical occurrence of any term that has an `abbreviation` so that the long form is introduced inline. For example, given a term `{ "term": "PSP", "abbreviation": "Payment Service Provider", ... }`:
+
+- Source: `The PSP charges a fee. Each PSP has its own pricing.`
+- Rendered: `The Payment Service Provider (PSP) charges a fee. Each PSP has its own pricing.`
+
+Rules:
+
+- Only the canonical `term` triggers expansion — aliases and plural forms (`PSPs`) do not.
+- Expansion only fires when the term has an `abbreviation` field.
+- If the author already wrote the long form immediately before the term (e.g. they typed `Payment Service Provider (PSP)` themselves), expansion is skipped to avoid duplication.
+- Scope is per file — the first occurrence in each markdown/MDX file is expanded.
+- Terms with `autoLink: false` are not expanded.
 
 ## Customization
 
@@ -597,6 +613,7 @@ The remark plugin (`remark/glossary-terms.js`) automatically detects glossary te
 - Skips terms inside code blocks, links, or existing MDX components
 - Respects word boundaries to avoid partial matches
 - Handles plural forms (e.g., "API" matches "APIs")
+- Resolves overlapping terms deterministically: when one term's range contains another's, the longer (superset) term wins; when two matches overlap but neither contains the other, the earlier match wins
 
 ## Troubleshooting
 
