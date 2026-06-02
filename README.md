@@ -7,7 +7,13 @@
 
 A comprehensive Docusaurus plugin that provides glossary functionality with an auto-generated glossary page, searchable terms, and inline term tooltips.
 
-> Compatibility: Fully compatible with Docusaurus v3 (MDX v3). If you were on a v2-era fork, please upgrade to the latest 2.x release of this plugin.
+## Compatibility
+
+| Plugin version | Docusaurus                       | React    | Node |
+| -------------- | -------------------------------- | -------- | ---- | -------- | ------ |
+| `3.3.x`        | `^3.0.0` (tested up to `3.10.1`) | `^18.0.0 |      | ^19.0.0` | `>=18` |
+
+On a v2-era fork? Upgrade to the latest `2.x` release of this plugin — it's the last line that targets Docusaurus 2.
 
 ## Features
 
