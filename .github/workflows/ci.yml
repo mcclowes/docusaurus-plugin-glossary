@@ -64,7 +64,7 @@ jobs:
 
       - name: Upload coverage
         if: matrix.node-version == '20.x'
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v6
         with:
           fail_ci_if_error: false
         continue-on-error: true

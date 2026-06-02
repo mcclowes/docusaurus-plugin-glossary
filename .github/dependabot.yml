@@ -1,0 +1,41 @@
+# Dependabot — low-churn policy: monthly cadence, updates batched into
+# grouped PRs. Routine version bumps are batched; security updates are
+# left ungrouped so they still arrive promptly.
+# Docs: https://docs.github.com/code-security/dependabot/dependabot-version-updates
+version: 2
+updates:
+  # ── Plugin package ────────────────────────────────────────────────
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    open-pull-requests-limit: 5
+    groups:
+      production-dependencies:
+        dependency-type: "production"
+        update-types: ["minor", "patch"]
+      development-dependencies:
+        dependency-type: "development"
+        update-types: ["minor", "patch"]
+    # Major bumps are left out of the groups so they open individually
+    # and get a proper review.
+
+  # ── Example site (demo only — fully batched into one PR) ──────────
+  - package-ecosystem: "npm"
+    directory: "/examples/docusaurus-v3"
+    schedule:
+      interval: "monthly"
+    open-pull-requests-limit: 1
+    groups:
+      example-site:
+        patterns: ["*"]
+        update-types: ["major", "minor", "patch"]
+
+  # ── GitHub Actions ───────────────────────────────────────────────
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    groups:
+      github-actions:
+        patterns: ["*"]
