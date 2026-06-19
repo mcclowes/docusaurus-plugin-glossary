@@ -15,6 +15,7 @@ export default defineConfig({
       index: 'src/index.ts',
       preset: 'src/preset.ts',
       validation: 'src/validation.ts',
+      'remark/glossary-terms': 'src/remark/glossary-terms.d.ts',
     },
   },
   format: ['cjs', 'esm'],
