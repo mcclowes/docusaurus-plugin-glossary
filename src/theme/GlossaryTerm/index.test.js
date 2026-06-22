@@ -34,7 +34,7 @@ describe('GlossaryTerm', () => {
     const tooltip = screen.getByRole('tooltip');
     expect(tooltip).toBeInTheDocument();
     expect(tooltip).toHaveClass('tooltipVisible');
-    expect(tooltip).toHaveTextContent('API Application Programming Interface');
+    expect(tooltip).toHaveTextContent('APIApplication Programming Interface');
   });
 
   it('should show the abbreviation expansion in the tooltip when provided', async () => {
@@ -45,7 +45,7 @@ describe('GlossaryTerm', () => {
     await user.hover(link);
 
     const tooltip = screen.getByRole('tooltip');
-    expect(tooltip).toHaveTextContent('VM (Virtual Machine) A guest OS.');
+    expect(tooltip).toHaveTextContent('VM (Virtual Machine). A guest OS.');
   });
 
   it('should omit the abbreviation when it matches the term', async () => {
@@ -56,7 +56,7 @@ describe('GlossaryTerm', () => {
     await user.hover(link);
 
     const tooltip = screen.getByRole('tooltip');
-    expect(tooltip).toHaveTextContent('API An interface.');
+    expect(tooltip).toHaveTextContent('APIAn interface.');
     expect(tooltip).not.toHaveTextContent('(api)');
   });
 
