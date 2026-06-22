@@ -1,21 +1,10 @@
-export interface GlossaryTerm {
-  term: string;
-  definition: string;
-  abbreviation?: string;
-  aliases?: string[];
-  autoLink?: boolean;
-  caseSensitive?: boolean;
-}
+import type {
+  GlossaryTerm,
+  RemarkGlossaryTermsOptions,
+  RemarkGlossaryTermsTransformer,
+} from '../types.js';
 
-export interface RemarkGlossaryTermsOptions {
-  terms?: GlossaryTerm[];
-  glossaryPath?: string | null;
-  routePath?: string;
-  siteDir?: string | null;
-  expandAcronymsOnFirstUse?: boolean;
-}
-
-export type RemarkGlossaryTermsTransformer = (tree: unknown) => unknown;
+export type { GlossaryTerm, RemarkGlossaryTermsOptions, RemarkGlossaryTermsTransformer };
 
 export default function remarkGlossaryTerms(
   options?: RemarkGlossaryTermsOptions
