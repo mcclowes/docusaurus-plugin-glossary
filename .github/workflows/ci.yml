@@ -36,6 +36,12 @@ jobs:
       - name: Type check (build)
         run: npm run build
 
+      # Uses --profile node16; legacy node10 (classic moduleResolution) is
+      # intentionally unsupported for subpath exports — this package targets
+      # Docusaurus v3 / node >= 20.
+      - name: Check package exports & types (are-the-types-wrong)
+        run: npm run check:exports
+
   test:
     name: Test
     runs-on: ubuntu-latest

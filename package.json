@@ -8,19 +8,34 @@
   "types": "dist/index.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js",
-      "require": "./dist/index.cjs"
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
     },
     "./preset": {
-      "types": "./dist/preset.d.ts",
-      "import": "./dist/preset.js",
-      "require": "./dist/preset.cjs"
+      "import": {
+        "types": "./dist/preset.d.ts",
+        "default": "./dist/preset.js"
+      },
+      "require": {
+        "types": "./dist/preset.d.cts",
+        "default": "./dist/preset.cjs"
+      }
     },
     "./remark/glossary-terms": {
-      "types": "./dist/remark/glossary-terms.d.ts",
-      "import": "./dist/remark/glossary-terms.js",
-      "require": "./dist/remark/glossary-terms.cjs"
+      "import": {
+        "types": "./dist/remark/glossary-terms.d.ts",
+        "default": "./dist/remark/glossary-terms.js"
+      },
+      "require": {
+        "types": "./dist/remark/glossary-terms.d.cts",
+        "default": "./dist/remark/glossary-terms.cjs"
+      }
     }
   },
   "files": [
@@ -34,6 +49,7 @@
     "watch": "npm run dev",
     "clean": "rimraf dist",
     "typecheck": "tsc --noEmit",
+    "check:exports": "npm run build && attw --pack --profile node16 .",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
@@ -44,7 +60,7 @@
     "example:serve": "npm --prefix examples/docusaurus-v3 run serve",
     "example:clear": "npm --prefix examples/docusaurus-v3 run clear",
     "prepare": "husky",
-    "prepublishOnly": "npm run build && npm test",
+    "prepublishOnly": "npm run build && npm test && npm run check:exports",
     "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,css,md}\"",
     "format:check": "prettier --check \"**/*.{js,jsx,ts,tsx,json,css,md}\"",
     "lint": "eslint \"src/**/*.{js,jsx,ts,tsx}\" \"__tests__/**/*.js\"",
@@ -83,6 +99,7 @@
     "node": ">=20.0"
   },
   "devDependencies": {
+    "@arethetypeswrong/cli": "^0.18.4",
     "@babel/preset-env": "^7.28.5",
     "@babel/preset-react": "^7.28.5",
     "@babel/preset-typescript": "^7.28.5",

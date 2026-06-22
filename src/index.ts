@@ -7,6 +7,11 @@ import type { LoadContext, Plugin } from '@docusaurus/types';
 import validatePeerDependencies from 'validate-peer-dependencies';
 import remarkGlossaryTerms from './remark/glossary-terms.js';
 import { validateGlossaryData, GlossaryValidationError } from './validation.js';
+import type { GlossaryPluginOptions, GlossaryData } from './types.js';
+
+// Re-export the shared public types so existing
+// `import type { GlossaryTerm } from 'docusaurus-plugin-glossary'` imports keep working.
+export type { GlossaryPluginOptions, GlossaryTerm, GlossaryData } from './types.js';
 
 // Standard ES module directory resolution
 const currentFilePath = fileURLToPath(import.meta.url);
@@ -14,36 +19,6 @@ const currentDir = path.dirname(currentFilePath);
 
 // Validate peer dependencies at module load time
 validatePeerDependencies(currentDir);
-
-export interface GlossaryPluginOptions {
-  glossaryPath?: string;
-  routePath?: string;
-  autoLinkTerms?: boolean;
-  /**
-   * When true, the first canonical occurrence of any term that has an `abbreviation` is
-   * rendered as "Long Form (Term)" instead of just "Term", enforcing the convention of
-   * introducing an acronym on first use. Subsequent occurrences in the same file render
-   * normally. Default: false.
-   */
-  expandAcronymsOnFirstUse?: boolean;
-}
-
-export interface GlossaryTerm {
-  term: string;
-  definition: string;
-  abbreviation?: string;
-  relatedTerms?: string[];
-  id?: string;
-  autoLink?: boolean;
-  aliases?: string[];
-  caseSensitive?: boolean;
-}
-
-export interface GlossaryData {
-  title?: string;
-  description?: string;
-  terms: GlossaryTerm[];
-}
 
 /**
  * Docusaurus Glossary Plugin
