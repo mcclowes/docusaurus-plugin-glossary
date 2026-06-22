@@ -15,10 +15,17 @@ import styles from './styles.module.css';
  * @param {object} props
  * @param {string} props.term - The glossary term
  * @param {string} props.definition - The definition to show in tooltip
+ * @param {string} props.abbreviation - Optional long-form expansion shown in the tooltip
  * @param {string} props.routePath - Route path to glossary page (default: '/glossary')
  * @param {React.ReactNode} props.children - Optional custom display text
  */
-export default function GlossaryTerm({ term, definition, routePath = '/glossary', children }) {
+export default function GlossaryTerm({
+  term,
+  definition,
+  abbreviation,
+  routePath = '/glossary',
+  children,
+}) {
   const [showTooltip, setShowTooltip] = useState(false);
   const [tooltipStyle, setTooltipStyle] = useState(null);
   const [placement, setPlacement] = useState('top'); // 'top' | 'bottom'
@@ -96,6 +103,23 @@ export default function GlossaryTerm({ term, definition, routePath = '/glossary'
     return found && found.definition ? found.definition : undefined;
   }, [definition, pluginData, term]);
 
+  // Pull the long-form expansion (abbreviation) from the prop, falling back to
+  // the plugin global data. Skipped when it is empty or identical to the term.
+  const effectiveAbbreviation = useMemo(() => {
+    let value = abbreviation;
+    if (!value) {
+      const terms = (pluginData && pluginData.terms) || [];
+      const found = terms.find(
+        t => typeof t.term === 'string' && t.term.toLowerCase() === String(term).toLowerCase()
+      );
+      value = found && found.abbreviation;
+    }
+    if (typeof value !== 'string') return undefined;
+    const trimmed = value.trim();
+    if (!trimmed || trimmed.toLowerCase() === String(term).toLowerCase()) return undefined;
+    return trimmed;
+  }, [abbreviation, pluginData, term]);
+
   const effectiveRoutePath = useMemo(() => {
     if (routePath && typeof routePath === 'string' && routePath.length > 0) return routePath;
     return (pluginData && pluginData.routePath) || '/glossary';
@@ -133,7 +157,8 @@ export default function GlossaryTerm({ term, definition, routePath = '/glossary'
               : undefined
           }
         >
-          <strong>{term}</strong> {effectiveDefinition}
+          <strong>{term}</strong>
+          {effectiveAbbreviation ? ` (${effectiveAbbreviation}). ` : ''}{effectiveDefinition}
         </span>
       )}
     </span>
