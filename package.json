@@ -101,7 +101,7 @@
   "devDependencies": {
     "@arethetypeswrong/cli": "^0.18.4",
     "@babel/preset-env": "^7.28.5",
-    "@babel/preset-react": "^7.28.5",
+    "@babel/preset-react": "^8.0.1",
     "@babel/preset-typescript": "^7.28.5",
     "@docusaurus/tsconfig": "^3.9.2",
     "@docusaurus/types": "^3.9.2",
