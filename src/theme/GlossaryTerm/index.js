@@ -158,7 +158,8 @@ export default function GlossaryTerm({
           }
         >
           <strong>{term}</strong>
-          {effectiveAbbreviation ? ` (${effectiveAbbreviation}). ` : ''}{effectiveDefinition}
+          {effectiveAbbreviation ? ` (${effectiveAbbreviation}). ` : ''}
+          {effectiveDefinition}
         </span>
       )}
     </span>
