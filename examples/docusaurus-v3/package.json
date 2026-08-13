@@ -5,7 +5,7 @@
   "scripts": {
     "start": "docusaurus start",
     "build": "npm run build:plugin && docusaurus build",
-    "build:plugin": "cd ../.. && npm install && npm run build",
+    "build:plugin": "npm run --prefix ../.. build",
     "serve": "docusaurus serve",
     "clear": "docusaurus clear"
   },
@@ -21,6 +21,6 @@
     }
   },
   "engines": {
-    "node": ">=16.14"
+    "node": ">=20.0"
   }
 }

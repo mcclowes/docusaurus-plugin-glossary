@@ -33,7 +33,7 @@ jobs:
 
       - name: Install example site dependencies
         working-directory: examples/docusaurus-v3
-        run: npm install
+        run: npm ci
 
       - name: Build example site
         working-directory: examples/docusaurus-v3
@@ -44,7 +44,7 @@ jobs:
         id: playwright-cache
         with:
           path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          key: playwright-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
 
       - name: Install Playwright Browsers
         if: steps.playwright-cache.outputs.cache-hit != 'true'

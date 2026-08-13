@@ -66,15 +66,35 @@ jobs:
         if: steps.check.outputs.skip == 'false'
         run: npm run build
 
+      - name: Check formatting
+        if: steps.check.outputs.skip == 'false'
+        run: npm run format:check
+
+      - name: Run linter
+        if: steps.check.outputs.skip == 'false'
+        run: npm run lint
+
+      - name: Type check
+        if: steps.check.outputs.skip == 'false'
+        run: npm run typecheck
+
       - name: Run tests
         if: steps.check.outputs.skip == 'false'
-        run: npm test -- --ci
+        run: npm test
 
-      - name: Create and push tag
+      - name: Check package exports and types
         if: steps.check.outputs.skip == 'false'
-        run: |
-          git tag ${{ steps.version.outputs.tag }}
-          git push origin ${{ steps.version.outputs.tag }}
+        run: HUSKY=0 npm run check:exports
+
+      - name: Install example site dependencies
+        if: steps.check.outputs.skip == 'false'
+        working-directory: examples/docusaurus-v3
+        run: npm ci
+
+      - name: Build example site
+        if: steps.check.outputs.skip == 'false'
+        working-directory: examples/docusaurus-v3
+        run: npm run build
 
       - name: Publish to npm with provenance
         if: steps.check.outputs.skip == 'false'
@@ -84,6 +104,12 @@ jobs:
           else
             npm publish --provenance --access public
           fi
+
+      - name: Create and push tag
+        if: steps.check.outputs.skip == 'false'
+        run: |
+          git tag ${{ steps.version.outputs.tag }}
+          git push origin ${{ steps.version.outputs.tag }}
 
       - name: Create GitHub Release
         if: steps.check.outputs.skip == 'false'

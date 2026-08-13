@@ -131,9 +131,8 @@ test.describe('Glossary Plugin', () => {
       const restLink = page.locator('a[href*="/glossary#rest"]').first();
       await restLink.hover();
 
-      // Check REST tooltip appears (use specific tooltip ID since first() finds wrong tooltip)
-      // REST appears twice in content, so there are 2 tooltips - first() gets the visible one
-      const tooltip = page.locator('#tooltip-rest').first();
+      // REST appears twice in content, so use the first matching tooltip.
+      const tooltip = page.locator('[role="tooltip"]').filter({ hasText: 'REST' }).first();
       await expect(tooltip).toBeVisible();
       await expect(tooltip).toContainText('REST');
       await expect(tooltip).toContainText('An architectural style');
