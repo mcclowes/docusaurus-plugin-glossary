@@ -1,4 +1,5 @@
 module.exports = {
+  watchman: false,
   testEnvironment: 'jsdom',
   setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
   transform: {
