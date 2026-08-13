@@ -150,15 +150,4 @@ describe('glossaryPlugin', () => {
     expect(pathsToWatch[0]).toContain('custom');
     expect(pathsToWatch[0]).toContain('glossary.json');
   });
-
-  it('should call postBuild callback', async () => {
-    const plugin = glossaryPlugin(context, {});
-    const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
-
-    await plugin.postBuild({ outDir: '/tmp/build' });
-
-    expect(consoleSpy).toHaveBeenCalledWith('Glossary plugin: Build completed');
-
-    consoleSpy.mockRestore();
-  });
 });

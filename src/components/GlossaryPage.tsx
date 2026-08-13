@@ -1,13 +1,13 @@
 import React, { useState, useMemo } from 'react';
 import Layout from '@theme/Layout';
-import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 import styles from './GlossaryPage.module.css';
+import type { GlossaryData, GlossaryTerm } from '../types.js';
 
 /**
  * Groups glossary terms by their first letter
  */
-function groupTermsByLetter(terms) {
-  const grouped = {};
+function groupTermsByLetter(terms: GlossaryTerm[]): Record<string, GlossaryTerm[]> {
+  const grouped: Record<string, GlossaryTerm[]> = {};
 
   terms.forEach(term => {
     const firstLetter = term.term.charAt(0).toUpperCase();
@@ -28,8 +28,7 @@ function groupTermsByLetter(terms) {
 /**
  * GlossaryPage component - displays all glossary terms
  */
-export default function GlossaryPage({ glossaryData }) {
-  useDocusaurusContext();
+export default function GlossaryPage({ glossaryData }: { glossaryData?: GlossaryData | null }) {
   const [searchTerm, setSearchTerm] = useState('');
 
   const terms = useMemo(() => glossaryData?.terms || [], [glossaryData?.terms]);

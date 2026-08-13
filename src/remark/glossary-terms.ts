@@ -2,10 +2,31 @@ import { visit } from 'unist-util-visit';
 import path from 'path';
 import fs from 'fs';
 import { validateGlossaryData } from '../validation.js';
+import type { PhrasingContent, Root, RootContent, Text } from 'mdast';
+import type { MdxJsxTextElement } from 'mdast-util-mdx-jsx';
+import type { GlossaryTerm, RemarkGlossaryTermsOptions } from '../types.js';
+
+interface CacheEntry {
+  terms: GlossaryTerm[];
+  loadedAt: number;
+}
+
+interface TermMatch {
+  index: number;
+  length: number;
+  termObj: GlossaryTerm;
+  originalText: string;
+}
+
+interface MatchableTerm {
+  termObj: GlossaryTerm;
+  phrase: string;
+  caseSensitive: boolean;
+}
 
 // Cache for glossary data to avoid repeated synchronous file reads
 // Key: absolute file path, Value: { terms, loadedAt }
-const glossaryCache = new Map();
+const glossaryCache = new Map<string, CacheEntry>();
 const CACHE_TTL = 5000; // 5 seconds TTL to allow for file changes during dev
 
 /**
@@ -31,7 +52,7 @@ export default function remarkGlossaryTerms({
   routePath = '/glossary',
   siteDir = null,
   expandAcronymsOnFirstUse = false,
-} = {}) {
+}: RemarkGlossaryTermsOptions = {}) {
   let glossaryTerms = terms;
 
   // If terms not provided, try to load from glossaryPath with caching
@@ -50,19 +71,19 @@ export default function remarkGlossaryTerms({
         // Consider passing terms directly to avoid this
         if (fs.existsSync(glossaryFilePath)) {
           const fileContent = fs.readFileSync(glossaryFilePath, 'utf8');
-          let glossaryData;
+          let glossaryData: unknown;
           try {
             glossaryData = JSON.parse(fileContent);
           } catch (parseError) {
             console.error(
               `[glossary-plugin] Failed to parse glossary JSON at ${glossaryPath}:`,
-              parseError.message
+              parseError instanceof Error ? parseError.message : String(parseError)
             );
             glossaryCache.set(glossaryFilePath, {
               terms: [],
               loadedAt: now,
             });
-            return tree => tree;
+            return (tree: Root) => tree;
           }
 
           // Validate glossary data
@@ -106,7 +127,7 @@ export default function remarkGlossaryTerms({
     } catch (error) {
       console.warn(
         `[glossary-plugin] Failed to load glossary from ${glossaryPath}:`,
-        error.message
+        error instanceof Error ? error.message : String(error)
       );
       // Cache the error to avoid repeated attempts
       if (glossaryPath && siteDir) {
@@ -124,12 +145,12 @@ export default function remarkGlossaryTerms({
   // back to the canonical term object so tooltip/href always use the canonical form.
   // Key: lowercase phrase, Value: { termObj, phrase, caseSensitive } where
   // `phrase` preserves the original case (used for case-sensitive matching).
-  const termMap = new Map();
+  const termMap = new Map<string, MatchableTerm>();
   glossaryTerms.forEach(termObj => {
     if (!termObj.term || termObj.autoLink === false) return;
     const caseSensitive = termObj.caseSensitive === true;
 
-    const register = phrase => {
+    const register = (phrase: string) => {
       if (typeof phrase !== 'string' || phrase.trim() === '') return;
       const key = phrase.toLowerCase();
       if (!termMap.has(key)) {
@@ -149,7 +170,7 @@ export default function remarkGlossaryTerms({
 
   // If no terms, return a no-op transformer
   if (sortedTerms.length === 0) {
-    return tree => tree;
+    return (tree: Root) => tree;
   }
 
   /**
@@ -160,17 +181,17 @@ export default function remarkGlossaryTerms({
    * @param {Set<string>} seenTerms - Per-file set tracking which canonical terms have already been
    *   rendered (used by expandAcronymsOnFirstUse to expand only on first occurrence).
    */
-  function replaceTermsInText(text, seenTerms) {
+  function replaceTermsInText(text: string, seenTerms: Set<string>): PhrasingContent[] {
     if (!text || !sortedTerms.length) {
       return [{ type: 'text', value: text }];
     }
 
-    const result = [];
+    const result: PhrasingContent[] = [];
     let lastIndex = 0;
     const textLower = text.toLowerCase();
 
     // Find all matches
-    const matches = [];
+    const matches: TermMatch[] = [];
     for (const [lowerPhrase, { termObj, phrase, caseSensitive }] of sortedTerms) {
       // Case-sensitive terms search the original text for the exact casing;
       // case-insensitive terms search the lowercased text for the lowercased phrase.
@@ -260,7 +281,7 @@ export default function remarkGlossaryTerms({
 
       // Add MDX component for glossary term
       result.push({
-        type: 'mdxJsxFlowElement',
+        type: 'mdxJsxTextElement',
         name: 'GlossaryTerm',
         attributes: [
           {
@@ -294,7 +315,7 @@ export default function remarkGlossaryTerms({
             value: displayText,
           },
         ],
-      });
+      } as MdxJsxTextElement);
 
       lastIndex = match.index + match.length;
     }
@@ -315,7 +336,7 @@ export default function remarkGlossaryTerms({
   // first canonical occurrence of a term that has an `abbreviation`, expand to
   // "Long Form (Term)" — unless the long form already appears immediately before the match
   // (e.g. the author wrote "Payment Service Provider (PSP)" themselves).
-  function resolveDisplayText(match, text, seenTerms) {
+  function resolveDisplayText(match: TermMatch, text: string, seenTerms: Set<string>): string {
     const termObj = match.termObj;
     if (!expandAcronymsOnFirstUse) return match.originalText;
     if (!termObj.abbreviation) return match.originalText;
@@ -341,8 +362,8 @@ export default function remarkGlossaryTerms({
   // Collect text nodes that live inside a heading (h1-h6) so we can skip them.
   // Headings are excluded from auto-linking because glossary anchors inside
   // headings clash with the heading's own link/anchor behavior and are noisy.
-  function collectHeadingTextNodes(tree) {
-    const skip = new WeakSet();
+  function collectHeadingTextNodes(tree: Root): WeakSet<Text> {
+    const skip = new WeakSet<Text>();
     visit(tree, 'heading', headingNode => {
       visit(headingNode, 'text', textNode => {
         skip.add(textNode);
@@ -352,21 +373,16 @@ export default function remarkGlossaryTerms({
   }
 
   // Return the transformer function
-  const transformer = tree => {
+  const transformer = (tree: Root): void => {
     let usedGlossaryTerm = false;
     const textNodesInHeadings = collectHeadingTextNodes(tree);
     // Per-file tracking: each transformer invocation gets a fresh Set so acronym
     // expansion fires at most once per term per file.
-    const seenTerms = new Set();
+    const seenTerms = new Set<string>();
     visit(tree, 'text', (node, index, parent) => {
+      if (index === undefined || !parent) return;
       // Skip text nodes inside code blocks, links, or existing MDX components
-      if (
-        parent.type === 'code' ||
-        parent.type === 'inlineCode' ||
-        parent.type === 'link' ||
-        parent.type === 'mdxJsxFlowElement' ||
-        parent.type === 'mdxJsxTextElement'
-      ) {
+      if (parent.type === 'link' || parent.type === 'mdxJsxTextElement') {
         return;
       }
 
@@ -385,19 +401,7 @@ export default function remarkGlossaryTerms({
       ) {
         // Convert to text elements for paragraph context if needed
         const newNodes = replacements.map(replacement => {
-          if (replacement.type === 'mdxJsxFlowElement') {
-            // In paragraph context, we need mdxJsxTextElement instead
-            if (parent.type === 'paragraph') {
-              usedGlossaryTerm = true;
-              return {
-                type: 'mdxJsxTextElement',
-                name: replacement.name,
-                attributes: replacement.attributes,
-                children: replacement.children,
-              };
-            }
-            usedGlossaryTerm = true;
-          }
+          if (replacement.type === 'mdxJsxTextElement') usedGlossaryTerm = true;
           return replacement;
         });
 
@@ -435,7 +439,7 @@ export default function remarkGlossaryTerms({
             ],
           },
         },
-      };
+      } as RootContent;
 
       // Check for existing import
       const hasImport =
@@ -444,7 +448,10 @@ export default function remarkGlossaryTerms({
           n =>
             n.type === 'mdxjsEsm' &&
             (n.value?.includes('@theme/GlossaryTerm') ||
-              n.data?.estree?.body?.some(s => s.source?.value === '@theme/GlossaryTerm'))
+              n.data?.estree?.body?.some(
+                statement =>
+                  'source' in statement && statement.source?.value === '@theme/GlossaryTerm'
+              ))
         );
 
       if (!hasImport) {
@@ -452,7 +459,10 @@ export default function remarkGlossaryTerms({
         let insertIndex = 0;
         for (let i = 0; i < tree.children.length; i++) {
           const node = tree.children[i];
-          if (node.type === 'yaml' || node.type === 'toml') {
+          if (
+            (node as { type: string }).type === 'yaml' ||
+            (node as { type: string }).type === 'toml'
+          ) {
             insertIndex = i + 1;
           } else {
             break;
@@ -472,7 +482,7 @@ export default function remarkGlossaryTerms({
  *
  * @param {string} [filePath] - Optional specific file path to clear. If not provided, clears entire cache.
  */
-export function clearGlossaryCache(filePath) {
+export function clearGlossaryCache(filePath?: string): void {
   if (filePath) {
     glossaryCache.delete(filePath);
   } else {

@@ -1,6 +1,19 @@
 import React, { useMemo, useState, useRef, useEffect, useCallback, useId } from 'react';
 import { usePluginData } from '@docusaurus/useGlobalData';
 import styles from './styles.module.css';
+import type { GlossaryData } from '../../types.js';
+
+interface GlossaryTermProps {
+  term: string;
+  definition?: string;
+  abbreviation?: string;
+  id?: string;
+  routePath?: string;
+  children?: React.ReactNode;
+}
+
+type TooltipPosition = { top: number; left: number };
+type PluginData = GlossaryData & { routePath?: string };
 
 /**
  * GlossaryTerm component - displays an inline term with tooltip
@@ -26,12 +39,12 @@ export default function GlossaryTerm({
   id,
   routePath = '/glossary',
   children,
-}) {
+}: GlossaryTermProps) {
   const [showTooltip, setShowTooltip] = useState(false);
-  const [tooltipStyle, setTooltipStyle] = useState(null);
+  const [tooltipStyle, setTooltipStyle] = useState<TooltipPosition | null>(null);
   const [placement, setPlacement] = useState('top'); // 'top' | 'bottom'
-  const wrapperRef = useRef(null);
-  const tooltipRef = useRef(null);
+  const wrapperRef = useRef<HTMLSpanElement>(null);
+  const tooltipRef = useRef<HTMLSpanElement>(null);
   const tooltipId = useId();
 
   const updatePosition = useCallback(() => {
@@ -73,7 +86,7 @@ export default function GlossaryTerm({
 
     // Use double requestAnimationFrame to ensure DOM is fully rendered and layout is complete
     // This ensures tooltipRef.current is available and has proper dimensions
-    let rafId2;
+    let rafId2: number | undefined;
     const rafId1 = requestAnimationFrame(() => {
       rafId2 = requestAnimationFrame(() => {
         updatePosition();
@@ -93,7 +106,7 @@ export default function GlossaryTerm({
   }, [showTooltip, updatePosition]);
 
   // Pull definition/route from plugin global data if not provided
-  const pluginData = usePluginData('docusaurus-plugin-glossary');
+  const pluginData = usePluginData('docusaurus-plugin-glossary') as PluginData | undefined;
   const effectiveDefinition = useMemo(() => {
     if (definition && typeof definition === 'string' && definition.length > 0) {
       return definition;

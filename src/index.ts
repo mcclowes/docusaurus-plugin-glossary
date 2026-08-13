@@ -27,7 +27,6 @@ validatePeerDependencies(currentDir);
  * - Glossary terms defined in a JSON file
  * - Auto-generated glossary page with term definitions
  * - GlossaryTerm component for inline definitions with interactive tooltips
- * - Automatic client-side initialization via getClientModules() (no manual imports needed)
  * - Optional automatic glossary term detection in markdown files via remark plugin
  *
  * ## Basic Usage (Manual Term Markup)
@@ -92,10 +91,6 @@ export default function glossaryPlugin(
 
   return {
     name: 'docusaurus-plugin-glossary',
-
-    getClientModules() {
-      return [path.resolve(currentDir, './client/index.js')];
-    },
 
     async loadContent() {
       // Load glossary terms from JSON file
@@ -176,11 +171,6 @@ export default function glossaryPlugin(
 
     getPathsToWatch() {
       return [path.resolve(context.siteDir, glossaryPath)];
-    },
-
-    async postBuild() {
-      // You can add any post-build steps here if needed
-      console.log('Glossary plugin: Build completed');
     },
   };
 }

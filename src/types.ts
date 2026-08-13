@@ -54,4 +54,6 @@ export interface RemarkGlossaryTermsOptions {
 }
 
 /** The transformer returned by the remark plugin factory. */
-export type RemarkGlossaryTermsTransformer = (tree: unknown) => unknown;
+export type RemarkGlossaryTermsTransformer = (
+  tree: import('mdast').Root
+) => void | import('mdast').Root;
