@@ -75,6 +75,12 @@ function validateTerm(term: unknown, index: number): ValidationError[] {
       message: `Field "definition" must be a string, got ${typeof termObj.definition}`,
       value: termObj.definition,
     });
+  } else if (termObj.definition.trim() === '') {
+    errors.push({
+      field: `${prefix}.definition`,
+      message: 'Field "definition" cannot be empty',
+      value: termObj.definition,
+    });
   }
 
   // Optional: abbreviation (string)
@@ -83,6 +89,12 @@ function validateTerm(term: unknown, index: number): ValidationError[] {
       errors.push({
         field: `${prefix}.abbreviation`,
         message: `Field "abbreviation" must be a string, got ${typeof termObj.abbreviation}`,
+        value: termObj.abbreviation,
+      });
+    } else if (termObj.abbreviation.trim() === '') {
+      errors.push({
+        field: `${prefix}.abbreviation`,
+        message: 'Field "abbreviation" cannot be empty',
         value: termObj.abbreviation,
       });
     }
@@ -104,6 +116,12 @@ function validateTerm(term: unknown, index: number): ValidationError[] {
             message: `Related term must be a string, got ${typeof relatedTerm}`,
             value: relatedTerm,
           });
+        } else if (relatedTerm.trim() === '') {
+          errors.push({
+            field: `${prefix}.relatedTerms[${relatedIndex}]`,
+            message: 'Related term cannot be empty',
+            value: relatedTerm,
+          });
         }
       });
     }
@@ -115,6 +133,19 @@ function validateTerm(term: unknown, index: number): ValidationError[] {
       errors.push({
         field: `${prefix}.id`,
         message: `Field "id" must be a string, got ${typeof termObj.id}`,
+        value: termObj.id,
+      });
+    } else if (termObj.id.trim() === '') {
+      errors.push({
+        field: `${prefix}.id`,
+        message: 'Field "id" cannot be empty',
+        value: termObj.id,
+      });
+    } else if (!/^[A-Za-z][A-Za-z0-9_.:-]*$/.test(termObj.id)) {
+      errors.push({
+        field: `${prefix}.id`,
+        message:
+          'Field "id" must start with a letter and contain only letters, numbers, _, ., :, or -',
         value: termObj.id,
       });
     }
@@ -225,31 +256,26 @@ export function validateGlossaryData(
 
   const glossaryData = data as Record<string, unknown>;
 
-  //Check for title
+  // Validate optional page metadata and omit invalid values from sanitized output.
+  let validTitle: string | undefined;
   if ('title' in glossaryData && typeof glossaryData.title !== 'string') {
     errors.push({
       field: 'title',
       message: 'The title property in the GlossaryData must be a string.',
     });
-
-    if (throwOnError && errors.length > 0) {
-      throw new GlossaryValidationError(errors);
-    }
+  } else if (typeof glossaryData.title === 'string') {
+    validTitle = glossaryData.title;
   }
-  const validTitle = glossaryData.title as string;
 
+  let validDescription: string | undefined;
   if ('description' in glossaryData && typeof glossaryData.description !== 'string') {
     errors.push({
       field: 'description',
       message: 'The description property in the GlossaryData must be a string.',
     });
-
-    if (throwOnError && errors.length > 0) {
-      throw new GlossaryValidationError(errors);
-    }
+  } else if (typeof glossaryData.description === 'string') {
+    validDescription = glossaryData.description;
   }
-
-  const validDescription = glossaryData.description as string;
 
   if (!('terms' in glossaryData)) {
     // Check for terms array
@@ -304,6 +330,60 @@ export function validateGlossaryData(
     } else {
       termNames.set(lowerName, index);
     }
+  });
+
+  // IDs are link targets, so collisions make one or more glossary links ambiguous.
+  const termIds = new Map<string, number>();
+  validTerms.forEach((term, index) => {
+    const id = (term.id || term.term.toLowerCase().replace(/\s+/g, '-')).toLowerCase();
+    const firstIndex = termIds.get(id);
+    if (firstIndex !== undefined) {
+      errors.push({
+        field: `terms[${index}].id`,
+        message: `Duplicate glossary ID "${id}" (first occurrence at index ${firstIndex})`,
+        value: term.id || id,
+      });
+    } else {
+      termIds.set(id, index);
+    }
+  });
+
+  // Canonical names and aliases share the same auto-link namespace.
+  const phrases = new Map<string, { index: number; field: string }>();
+  validTerms.forEach((term, index) => {
+    const candidates = [
+      { value: term.term, field: `terms[${index}].term` },
+      ...(term.aliases || []).map((value, aliasIndex) => ({
+        value,
+        field: `terms[${index}].aliases[${aliasIndex}]`,
+      })),
+    ];
+    candidates.forEach(candidate => {
+      const key = candidate.value.toLowerCase();
+      const first = phrases.get(key);
+      if (first) {
+        errors.push({
+          field: candidate.field,
+          message: `Duplicate glossary phrase "${candidate.value}" (first occurrence at ${first.field})`,
+          value: candidate.value,
+        });
+      } else {
+        phrases.set(key, { index, field: candidate.field });
+      }
+    });
+  });
+
+  const canonicalTerms = new Set(validTerms.map(term => term.term.toLowerCase()));
+  validTerms.forEach((term, index) => {
+    term.relatedTerms?.forEach((relatedTerm, relatedIndex) => {
+      if (!canonicalTerms.has(relatedTerm.toLowerCase())) {
+        errors.push({
+          field: `terms[${index}].relatedTerms[${relatedIndex}]`,
+          message: `Related term "${relatedTerm}" does not exist`,
+          value: relatedTerm,
+        });
+      }
+    });
   });
 
   if (throwOnError && errors.length > 0) {

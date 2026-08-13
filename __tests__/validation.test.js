@@ -31,6 +31,8 @@ describe('validateGlossaryData', () => {
             relatedTerms: ['SDK', 'REST'],
             id: 'api-term',
           },
+          { term: 'SDK', definition: 'Software Development Kit' },
+          { term: 'REST', definition: 'Representational State Transfer' },
         ],
       };
 
@@ -160,6 +162,16 @@ describe('validateGlossaryData', () => {
       expect(result.valid).toBe(false);
       expect(result.errors[0].message).toContain('must be a string');
     });
+
+    it('should reject an empty definition', () => {
+      const result = validateGlossaryData(
+        { terms: [{ term: 'API', definition: '   ' }] },
+        { throwOnError: false }
+      );
+
+      expect(result.errors[0].field).toBe('terms[0].definition');
+      expect(result.data.terms).toHaveLength(0);
+    });
   });
 
   describe('optional field validation', () => {
@@ -205,6 +217,17 @@ describe('validateGlossaryData', () => {
 
       expect(result.valid).toBe(false);
       expect(result.errors[0].field).toBe('terms[0].id');
+    });
+
+    it('should reject empty and anchor-unsafe IDs', () => {
+      for (const id of ['', 'api term', '#api', '123-api']) {
+        const result = validateGlossaryData(
+          { terms: [{ term: 'API', definition: 'Test', id }] },
+          { throwOnError: false }
+        );
+        expect(result.valid).toBe(false);
+        expect(result.errors[0].field).toBe('terms[0].id');
+      }
     });
 
     it('should accept boolean autoLink', () => {
@@ -268,6 +291,56 @@ describe('validateGlossaryData', () => {
       expect(result.valid).toBe(false);
       expect(result.errors.some(e => e.message.includes('Duplicate term'))).toBe(true);
     });
+
+    it('should detect duplicate IDs', () => {
+      const result = validateGlossaryData(
+        {
+          terms: [
+            { term: 'API', id: 'shared', definition: 'First' },
+            { term: 'REST', id: 'SHARED', definition: 'Second' },
+          ],
+        },
+        { throwOnError: false }
+      );
+
+      expect(result.errors.some(error => error.message.includes('Duplicate glossary ID'))).toBe(
+        true
+      );
+    });
+
+    it('should detect aliases that collide with another term', () => {
+      const result = validateGlossaryData(
+        {
+          terms: [
+            { term: 'API', aliases: ['Interface'], definition: 'First' },
+            { term: 'Interface', definition: 'Second' },
+          ],
+        },
+        { throwOnError: false }
+      );
+
+      expect(result.errors.some(error => error.message.includes('Duplicate glossary phrase'))).toBe(
+        true
+      );
+    });
+  });
+
+  it('should flag related terms that do not exist', () => {
+    const result = validateGlossaryData(
+      { terms: [{ term: 'API', definition: 'Test', relatedTerms: ['Missing'] }] },
+      { throwOnError: false }
+    );
+
+    expect(result.errors[0].message).toContain('does not exist');
+  });
+
+  it('should omit invalid page metadata from sanitized data', () => {
+    const result = validateGlossaryData(
+      { title: 123, description: false, terms: [] },
+      { throwOnError: false }
+    );
+
+    expect(result.data).toEqual({ title: undefined, description: undefined, terms: [] });
   });
 
   describe('throwOnError option', () => {
