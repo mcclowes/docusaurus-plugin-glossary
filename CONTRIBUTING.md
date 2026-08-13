@@ -2,6 +2,10 @@
 
 Thank you for your interest in contributing to docusaurus-plugin-glossary! This document provides guidelines and instructions for contributing to the project.
 
+## Documentation repository
+
+User-facing documentation lives in the sister repository at `/Users/mcclowes/Development/docusaurus/docusaurus-plugins-docs`. Make product documentation changes there. Keep this repository's README focused on package installation, API accuracy, and development essentials.
+
 ## Code of Conduct
 
 Please be respectful and considerate of others when contributing to this project. We aim to create a welcoming and inclusive community for all contributors.
@@ -79,7 +83,7 @@ We welcome pull requests! Please follow these guidelines:
    npm run build
    ```
 
-   This compiles TypeScript from `src/index.ts` to `dist/index.js` and copies other files from `src/` to `dist/`.
+   This uses tsup to build ESM, CommonJS, source maps, CSS assets, and declarations in `dist/`.
 
    For development with auto-rebuild on changes:
 
@@ -115,28 +119,29 @@ We welcome pull requests! Please follow these guidelines:
 
 ## Project Structure
 
-This project uses TypeScript for the main entry point and JavaScript for components. Source files are in `src/` and compiled output goes to `dist/`.
+Source files are TypeScript and TSX. Tsup generates ESM, CommonJS, source maps, CSS assets, and declarations in `dist/`.
 
 ```
 docusaurus-plugin-glossary/
 ├── src/
 │   ├── index.ts               # Main plugin entry point (TypeScript)
 │   ├── components/
-│   │   ├── GlossaryPage.js    # Main glossary page component
+│   │   ├── GlossaryPage.tsx   # Main glossary page component
 │   │   ├── GlossaryPage.module.css
 │   │   └── GlossaryPage.test.js
 │   ├── theme/
 │   │   └── GlossaryTerm/
-│   │       ├── index.js       # Inline term component
+│   │       ├── index.tsx      # Inline term component
 │   │       ├── styles.module.css
 │   │       └── index.test.js
 │   └── remark/
-│       └── glossary-terms.js  # Remark plugin for auto-linking
+│       └── glossary-terms.ts  # Remark plugin for auto-linking
 ├── dist/                      # Compiled output (generated, don't edit directly)
-│   ├── index.js               # Compiled from src/index.ts
-│   ├── components/            # Copied from src/components/
-│   ├── theme/                 # Copied from src/theme/
-│   └── remark/                # Copied from src/remark/
+│   ├── index.js               # ESM package entry
+│   ├── index.cjs              # CommonJS package entry
+│   ├── components/            # Bundled glossary page
+│   ├── theme/                 # Bundled theme component
+│   └── remark/                # Bundled remark plugin
 ├── __tests__/
 │   └── plugin.test.js         # Plugin lifecycle tests
 ├── jest/
@@ -145,18 +150,15 @@ docusaurus-plugin-glossary/
 │   └── setupFiles.js
 ├── examples/
 │   └── docusaurus-v3/         # Example Docusaurus site
-├── scripts/
-│   ├── build.js               # Build script (TypeScript compilation + file copying)
-│   ├── watch.js               # Watch script for development
-│   └── ...
 ├── jest.config.cjs            # Jest configuration
 ├── tsconfig.json              # TypeScript configuration
+├── tsup.config.ts             # Package build configuration
 └── package.json
 ```
 
 ## Testing
 
-This project uses Jest for testing. When adding new features or fixing bugs:
+This project uses Jest for unit tests, the MDX compiler for remark integration tests, and Playwright for browser tests. When adding new features or fixing bugs:
 
 1. **Write tests** for your changes
 2. **Ensure all tests pass** before submitting a PR
@@ -166,23 +168,18 @@ This project uses Jest for testing. When adding new features or fixing bugs:
 ### Test Organization
 
 - Plugin lifecycle tests: `__tests__/plugin.test.js`
+- Real MDX pipeline tests: `__tests__/remark-glossary-terms.integration.test.mjs`
 - Component tests: alongside components (e.g., `src/components/GlossaryPage.test.js`, `src/theme/GlossaryTerm/index.test.js`)
 - Use `jest/mocks/` for mocking Docusaurus APIs and dependencies
 
 ### Working with TypeScript
 
-When working on the main plugin file (`src/index.ts`):
-
-1. Edit `src/index.ts` (the TypeScript source)
-2. Run `npm run build` to compile to `dist/index.js`
-3. The compiled `dist/index.js` is what gets published to npm (via the `main` field in `package.json`)
-4. For development, use `npm run watch` to automatically rebuild on changes
+Run `npm run typecheck` after changing source types. Run `npm run check:exports` when changing package entries, declarations, or build configuration. For development, use `npm run watch` to rebuild on changes.
 
 ## Code Style
 
 - We use Prettier for code formatting
-- TypeScript for the main plugin entry point (`src/index.ts`)
-- JavaScript/JSX for components (in `src/components/`, `src/theme/`, `src/remark/`)
+- TypeScript and TSX for plugin, remark, and component code
 - Follow modern ES6+ conventions
 - Use meaningful variable and function names
 - Add comments for complex logic
@@ -219,13 +216,9 @@ We prefer conventional commit messages when possible:
 
 Only maintainers can release new versions. Publishing to npm is automated via the `Publish to npm` GitHub Action.
 
-1. Update the version in `package.json` and commit your changes
-2. Update the changelog if needed
-3. Create and push a tag (recommended format: `vX.Y.Z`)
-4. Draft and publish a GitHub release for the tag (or trigger the workflow manually via **Run workflow**)
-5. The GitHub Action installs dependencies, runs tests, and executes `npm publish` automatically
-
-> **Note:** The repository must have an `NPM_TOKEN` secret with publish permissions so the workflow can authenticate with npm.
+1. Run the version bump workflow and select the release type.
+2. Review and merge its pull request.
+3. The release workflow validates the package and example site, publishes to npm with trusted publishing and provenance, creates the tag, and creates the GitHub release.
 
 ## Questions?
 
