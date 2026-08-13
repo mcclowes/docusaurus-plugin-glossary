@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useRef, useEffect, useCallback } from 'react';
+import React, { useMemo, useState, useRef, useEffect, useCallback, useId } from 'react';
 import { usePluginData } from '@docusaurus/useGlobalData';
 import styles from './styles.module.css';
 
@@ -23,6 +23,7 @@ export default function GlossaryTerm({
   term,
   definition,
   abbreviation,
+  id,
   routePath = '/glossary',
   children,
 }) {
@@ -31,6 +32,7 @@ export default function GlossaryTerm({
   const [placement, setPlacement] = useState('top'); // 'top' | 'bottom'
   const wrapperRef = useRef(null);
   const tooltipRef = useRef(null);
+  const tooltipId = useId();
 
   const updatePosition = useCallback(() => {
     if (!wrapperRef.current || !tooltipRef.current) return;
@@ -125,26 +127,34 @@ export default function GlossaryTerm({
     return (pluginData && pluginData.routePath) || '/glossary';
   }, [pluginData, routePath]);
 
+  const effectiveTermId = useMemo(() => {
+    if (id && typeof id === 'string') return id;
+    const terms = (pluginData && pluginData.terms) || [];
+    const found = terms.find(
+      t => typeof t.term === 'string' && t.term.toLowerCase() === String(term).toLowerCase()
+    );
+    return found?.id || term.toLowerCase().replace(/\s+/g, '-');
+  }, [id, pluginData, term]);
+
   const displayText = children || term;
-  const termId = term.toLowerCase().replace(/\s+/g, '-');
 
   return (
     <span ref={wrapperRef} className={styles.glossaryTermWrapper}>
       <a
-        href={`${effectiveRoutePath}#${termId}`}
+        href={`${effectiveRoutePath}#${effectiveTermId}`}
         className={styles.glossaryTerm}
         onMouseEnter={() => setShowTooltip(true)}
         onMouseLeave={() => setShowTooltip(false)}
         onFocus={() => setShowTooltip(true)}
         onBlur={() => setShowTooltip(false)}
-        aria-describedby={`tooltip-${termId}`}
+        aria-describedby={effectiveDefinition ? tooltipId : undefined}
       >
         {displayText}
       </a>
       {effectiveDefinition && (
         <span
           ref={tooltipRef}
-          id={`tooltip-${termId}`}
+          id={tooltipId}
           className={
             `${styles.tooltip} ${showTooltip ? styles.tooltipVisible : ''} ` +
             `${placement === 'top' ? styles.tooltipTop : styles.tooltipBottom} ` +
@@ -158,7 +168,8 @@ export default function GlossaryTerm({
           }
         >
           <strong>{term}</strong>
-          {effectiveAbbreviation ? ` (${effectiveAbbreviation}). ` : ''}{effectiveDefinition}
+          {effectiveAbbreviation ? ` (${effectiveAbbreviation}). ` : ''}
+          {effectiveDefinition}
         </span>
       )}
     </span>

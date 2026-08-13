@@ -201,6 +201,21 @@ describe('GlossaryPage', () => {
     expect(screen.getAllByText('REST').length).toBeGreaterThan(0);
   });
 
+  it('should link related terms to their custom IDs', () => {
+    const data = {
+      terms: [
+        { term: 'API', id: 'api-term', definition: 'An interface', relatedTerms: ['REST'] },
+        { term: 'REST', id: 'rest-architecture', definition: 'An architecture' },
+      ],
+    };
+    render(<GlossaryPage glossaryData={data} />);
+
+    expect(screen.getByRole('link', { name: 'REST' })).toHaveAttribute(
+      'href',
+      '#rest-architecture'
+    );
+  });
+
   it('should show total term count in footer', () => {
     render(<GlossaryPage glossaryData={mockGlossaryData} />);
 

@@ -115,12 +115,34 @@ describe('GlossaryTerm', () => {
     expect(link).toHaveAttribute('href', '/glossary#machine-learning');
   });
 
+  it('should use a custom term ID', () => {
+    render(<GlossaryTerm term="API" id="api-term" definition="An interface" />);
+
+    expect(screen.getByRole('link')).toHaveAttribute('href', '/glossary#api-term');
+  });
+
+  it('should give repeated tooltips unique accessible IDs', () => {
+    render(
+      <>
+        <GlossaryTerm term="API" definition="An interface" />
+        <GlossaryTerm term="API" definition="An interface" />
+      </>
+    );
+
+    const links = screen.getAllByRole('link');
+    const tooltips = screen.getAllByRole('tooltip');
+    expect(tooltips[0].id).not.toBe(tooltips[1].id);
+    expect(links[0]).toHaveAttribute('aria-describedby', tooltips[0].id);
+    expect(links[1]).toHaveAttribute('aria-describedby', tooltips[1].id);
+  });
+
   it('should work without definition prop', () => {
     render(<GlossaryTerm term="TestTerm" />);
 
     const link = screen.getByRole('link', { name: 'TestTerm' });
     expect(link).toBeInTheDocument();
     expect(link).toHaveAttribute('href', '/glossary#testterm');
+    expect(link).not.toHaveAttribute('aria-describedby');
 
     // No tooltip should be rendered when no definition
     const tooltip = screen.queryByRole('tooltip');
@@ -131,10 +153,8 @@ describe('GlossaryTerm', () => {
     render(<GlossaryTerm term="API" definition="Application Programming Interface" />);
 
     const link = screen.getByRole('link');
-    expect(link).toHaveAttribute('aria-describedby', 'tooltip-api');
-
     const tooltip = screen.getByRole('tooltip');
-    expect(tooltip).toHaveAttribute('id', 'tooltip-api');
+    expect(link).toHaveAttribute('aria-describedby', tooltip.id);
   });
 
   it('positions tooltip within viewport and adds placement classes', async () => {

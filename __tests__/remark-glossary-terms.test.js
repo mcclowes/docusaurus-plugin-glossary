@@ -31,6 +31,20 @@ describe('remarkGlossaryTerms', () => {
     expect(glossaryNode.attributes[0].value).toBe('API');
   });
 
+  it('should pass custom term IDs to GlossaryTerm', () => {
+    const transformer = remarkGlossaryTerms({
+      terms: [{ term: 'API', id: 'api-term', definition: 'An interface' }],
+    });
+
+    const tree = makeTree('The API is useful.');
+    transformer(tree);
+    const glossaryNode = getChildren(tree).find(n => n.name === 'GlossaryTerm');
+
+    expect(glossaryNode.attributes).toEqual(
+      expect.arrayContaining([expect.objectContaining({ name: 'id', value: 'api-term' })])
+    );
+  });
+
   it('should skip terms with autoLink: false', () => {
     const transformer = remarkGlossaryTerms({
       terms: [{ term: 'API', definition: 'Application Programming Interface', autoLink: false }],

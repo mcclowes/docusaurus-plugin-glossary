@@ -329,6 +329,15 @@ export default function remarkGlossaryTerms({
             name: 'routePath',
             value: routePath,
           },
+          ...(match.termObj.id
+            ? [
+                {
+                  type: 'mdxJsxAttribute',
+                  name: 'id',
+                  value: match.termObj.id,
+                },
+              ]
+            : []),
         ],
         children: [
           {

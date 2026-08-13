@@ -33,6 +33,16 @@ export default function GlossaryPage({ glossaryData }) {
   const [searchTerm, setSearchTerm] = useState('');
 
   const terms = useMemo(() => glossaryData?.terms || [], [glossaryData?.terms]);
+  const termIds = useMemo(
+    () =>
+      new Map(
+        terms.map(term => [
+          term.term.toLowerCase(),
+          term.id || term.term.toLowerCase().replace(/\s+/g, '-'),
+        ])
+      ),
+    [terms]
+  );
 
   // Filter terms based on search
   const filteredTerms = useMemo(() => {
@@ -117,7 +127,9 @@ export default function GlossaryPage({ glossaryData }) {
                             {term.relatedTerms.map((related, idx) => (
                               <React.Fragment key={idx}>
                                 {idx > 0 && ', '}
-                                <a href={`#${related.toLowerCase().replace(/\s+/g, '-')}`}>
+                                <a
+                                  href={`#${termIds.get(related.toLowerCase()) || related.toLowerCase().replace(/\s+/g, '-')}`}
+                                >
                                   {related}
                                 </a>
                               </React.Fragment>
