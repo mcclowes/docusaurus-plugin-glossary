@@ -116,6 +116,16 @@ Create a JSON file at `glossary/glossary.json` (or your configured path) in your
       "term": "API",
       "abbreviation": "Application Programming Interface",
       "definition": "A set of rules and protocols that allows different software applications to communicate with each other.",
+      "documentation": {
+        "path": "/docs/api",
+        "label": "Read the API guide"
+      },
+      "references": [
+        {
+          "label": "OpenAPI specification",
+          "url": "https://spec.openapis.org/oas/latest.html"
+        }
+      ],
       "relatedTerms": ["REST", "GraphQL"]
     },
     {
@@ -141,6 +151,8 @@ Create a JSON file at `glossary/glossary.json` (or your configured path) in your
 - `autoLink` (boolean): Set to `false` to opt a term out of automatic linking (default: `true`)
 - `aliases` (string[]): Additional phrases that should also auto-link to this term. Useful for inflections (e.g. `["cleaning", "cleaned"]` for `clean`) or alternate forms. The rendered link and tooltip always use the canonical `term`
 - `caseSensitive` (boolean): Set to `true` to match only the exact case of `term` and its `aliases` (default: `false`). Useful for acronyms that share spelling with common words (e.g. `REST` should not match `rest`)
+- `documentation` (object): The canonical page for the term on your Docusaurus site. `path` must be a site-relative route beginning with `/`; `label` optionally customizes the glossary page link (default: `Read more`). Auto-linked occurrences navigate to this page instead of the glossary entry
+- `references` (object[]): External supporting sources. Each reference requires a `label` and an absolute HTTP(S) `url`. References appear on the glossary page and don't change the destination of auto-linked terms
 
 ### Step 2: Configure the Plugin
 
@@ -368,6 +380,7 @@ Our <GlossaryTerm term="API" definition="Application Programming Interface">REST
 
 - `term` (required): The term name (used to look up definition from glossary)
 - `definition` (optional): Override the definition from the glossary file
+- `documentationPath` (optional): Override the internal documentation destination from the glossary file
 - `children` (optional): Custom text to display (defaults to term name)
 
 ### Step 4: Access the Glossary Page

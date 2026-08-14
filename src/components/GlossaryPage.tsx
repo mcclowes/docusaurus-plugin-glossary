@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import Layout from '@theme/Layout';
+import Link from '@docusaurus/Link';
 import styles from './GlossaryPage.module.css';
 import type { GlossaryData, GlossaryTerm } from '../types.js';
 
@@ -49,7 +50,14 @@ export default function GlossaryPage({ glossaryData }: { glossaryData?: Glossary
 
     const lowerSearch = searchTerm.toLowerCase();
     return terms.filter(term => {
-      const haystack = [term.term, term.definition, term.abbreviation, ...(term.aliases || [])]
+      const haystack = [
+        term.term,
+        term.definition,
+        term.abbreviation,
+        term.documentation?.label,
+        ...(term.aliases || []),
+        ...(term.references || []).map(reference => reference.label),
+      ]
         .filter(Boolean)
         .join(' ')
         .toLowerCase();
@@ -120,6 +128,24 @@ export default function GlossaryPage({ glossaryData }: { glossaryData?: Glossary
                       </dt>
                       <dd className={styles.termDefinition}>
                         {term.definition}
+                        {term.documentation && (
+                          <div className={styles.documentation}>
+                            <Link to={term.documentation.path}>
+                              {term.documentation.label || 'Read more'}
+                            </Link>
+                          </div>
+                        )}
+                        {term.references && term.references.length > 0 && (
+                          <div className={styles.references}>
+                            <strong>References:</strong>{' '}
+                            {term.references.map((reference, idx) => (
+                              <React.Fragment key={`${reference.url}-${idx}`}>
+                                {idx > 0 && ', '}
+                                <a href={reference.url}>{reference.label}</a>
+                              </React.Fragment>
+                            ))}
+                          </div>
+                        )}
                         {term.relatedTerms && term.relatedTerms.length > 0 && (
                           <div className={styles.relatedTerms}>
                             <strong>Related terms:</strong>{' '}

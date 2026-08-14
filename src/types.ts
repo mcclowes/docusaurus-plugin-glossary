@@ -11,6 +11,18 @@
  * sync by hand.
  */
 
+/** A link to the site's canonical documentation for a glossary term. */
+export interface GlossaryDocumentation {
+  path: string;
+  label?: string;
+}
+
+/** A third-party source or other external reference for a glossary term. */
+export interface GlossaryReference {
+  label: string;
+  url: string;
+}
+
 /** A single glossary entry. */
 export interface GlossaryTerm {
   term: string;
@@ -21,6 +33,8 @@ export interface GlossaryTerm {
   autoLink?: boolean;
   aliases?: string[];
   caseSensitive?: boolean;
+  documentation?: GlossaryDocumentation;
+  references?: GlossaryReference[];
 }
 
 /** Shape of a glossary JSON file. */

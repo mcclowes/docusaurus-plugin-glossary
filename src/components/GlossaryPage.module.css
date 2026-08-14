@@ -129,6 +129,8 @@
   color: var(--ifm-color-emphasis-800);
 }
 
+.documentation,
+.references,
 .relatedTerms {
   margin-top: 1rem;
   padding-top: 1rem;
@@ -137,11 +139,15 @@
   color: var(--ifm-color-emphasis-700);
 }
 
+.documentation a,
+.references a,
 .relatedTerms a {
   color: var(--ifm-color-primary);
   text-decoration: none;
 }
 
+.documentation a:hover,
+.references a:hover,
 .relatedTerms a:hover {
   text-decoration: underline;
 }

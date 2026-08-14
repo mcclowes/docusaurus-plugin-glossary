@@ -121,6 +121,12 @@ describe('GlossaryTerm', () => {
     expect(screen.getByRole('link')).toHaveAttribute('href', '/glossary#api-term');
   });
 
+  it('should link to internal documentation when provided', () => {
+    render(<GlossaryTerm term="API" documentationPath="/docs/api" definition="An interface" />);
+
+    expect(screen.getByRole('link')).toHaveAttribute('href', '/docs/api');
+  });
+
   it('should give repeated tooltips unique accessible IDs', () => {
     render(
       <>

@@ -30,6 +30,8 @@ describe('validateGlossaryData', () => {
             abbreviation: 'API',
             relatedTerms: ['SDK', 'REST'],
             id: 'api-term',
+            documentation: { path: '/docs/api', label: 'Read the API guide' },
+            references: [{ label: 'IETF API guidance', url: 'https://example.com/api-guidance' }],
           },
           { term: 'SDK', definition: 'Software Development Kit' },
           { term: 'REST', definition: 'Representational State Transfer' },
@@ -184,6 +186,36 @@ describe('validateGlossaryData', () => {
 
       expect(result.valid).toBe(false);
       expect(result.errors[0].field).toBe('terms[0].abbreviation');
+    });
+
+    it('should reject external or relative documentation paths', () => {
+      for (const path of ['docs/api', 'https://example.com/api', '//example.com/api']) {
+        const result = validateGlossaryData(
+          { terms: [{ term: 'API', definition: 'Test', documentation: { path } }] },
+          { throwOnError: false }
+        );
+        expect(result.valid).toBe(false);
+        expect(result.errors[0].field).toBe('terms[0].documentation.path');
+      }
+    });
+
+    it('should reject unsafe or internal reference URLs', () => {
+      for (const url of ['/docs/api', 'javascript:alert(1)', 'mailto:docs@example.com']) {
+        const result = validateGlossaryData(
+          {
+            terms: [
+              {
+                term: 'API',
+                definition: 'Test',
+                references: [{ label: 'Reference', url }],
+              },
+            ],
+          },
+          { throwOnError: false }
+        );
+        expect(result.valid).toBe(false);
+        expect(result.errors[0].field).toBe('terms[0].references[0].url');
+      }
     });
 
     it('should reject non-array relatedTerms', () => {

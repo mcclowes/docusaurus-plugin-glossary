@@ -308,6 +308,15 @@ export default function remarkGlossaryTerms({
                 },
               ]
             : []),
+          ...(match.termObj.documentation
+            ? [
+                {
+                  type: 'mdxJsxAttribute',
+                  name: 'documentationPath',
+                  value: match.termObj.documentation.path,
+                },
+              ]
+            : []),
         ],
         children: [
           {

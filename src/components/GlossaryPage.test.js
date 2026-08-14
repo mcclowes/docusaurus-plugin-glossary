@@ -22,6 +22,8 @@ jest.mock('./GlossaryPage.module.css', () => ({
   abbreviation: 'abbreviation',
   termDefinition: 'termDefinition',
   relatedTerms: 'relatedTerms',
+  documentation: 'documentation',
+  references: 'references',
   glossaryFooter: 'glossaryFooter',
 }));
 
@@ -213,6 +215,32 @@ describe('GlossaryPage', () => {
     expect(screen.getByRole('link', { name: 'REST' })).toHaveAttribute(
       'href',
       '#rest-architecture'
+    );
+  });
+
+  it('should render internal documentation and external references separately', () => {
+    const data = {
+      terms: [
+        {
+          term: 'MCP',
+          definition: 'A protocol',
+          documentation: { path: '/docs/mcp', label: 'Read the MCP guide' },
+          references: [
+            { label: 'Official specification', url: 'https://modelcontextprotocol.io/' },
+          ],
+        },
+      ],
+    };
+
+    render(<GlossaryPage glossaryData={data} />);
+
+    expect(screen.getByRole('link', { name: 'Read the MCP guide' })).toHaveAttribute(
+      'href',
+      '/docs/mcp'
+    );
+    expect(screen.getByRole('link', { name: 'Official specification' })).toHaveAttribute(
+      'href',
+      'https://modelcontextprotocol.io/'
     );
   });
 

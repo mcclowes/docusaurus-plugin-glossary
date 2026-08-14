@@ -11,7 +11,13 @@ import type { GlossaryPluginOptions, GlossaryData } from './types.js';
 
 // Re-export the shared public types so existing
 // `import type { GlossaryTerm } from 'docusaurus-plugin-glossary'` imports keep working.
-export type { GlossaryPluginOptions, GlossaryTerm, GlossaryData } from './types.js';
+export type {
+  GlossaryData,
+  GlossaryDocumentation,
+  GlossaryPluginOptions,
+  GlossaryReference,
+  GlossaryTerm,
+} from './types.js';
 
 // Standard ES module directory resolution
 const currentFilePath = fileURLToPath(import.meta.url);

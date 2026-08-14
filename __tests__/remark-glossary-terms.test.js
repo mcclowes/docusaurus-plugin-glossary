@@ -45,6 +45,28 @@ describe('remarkGlossaryTerms', () => {
     );
   });
 
+  it('should pass internal documentation paths to GlossaryTerm', () => {
+    const transformer = remarkGlossaryTerms({
+      terms: [
+        {
+          term: 'API',
+          definition: 'An interface',
+          documentation: { path: '/docs/api', label: 'Read the API guide' },
+        },
+      ],
+    });
+
+    const tree = makeTree('The API is useful.');
+    transformer(tree);
+    const glossaryNode = getChildren(tree).find(n => n.name === 'GlossaryTerm');
+
+    expect(glossaryNode.attributes).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ name: 'documentationPath', value: '/docs/api' }),
+      ])
+    );
+  });
+
   it('should skip terms with autoLink: false', () => {
     const transformer = remarkGlossaryTerms({
       terms: [{ term: 'API', definition: 'Application Programming Interface', autoLink: false }],

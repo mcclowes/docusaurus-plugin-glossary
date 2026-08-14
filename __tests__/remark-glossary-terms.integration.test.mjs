@@ -9,6 +9,7 @@ const terms = [
     id: 'api-term',
     definition: 'Application Programming Interface',
     aliases: ['interface contract'],
+    documentation: { path: '/docs/api' },
   },
   { term: 'REST API', definition: 'A RESTful interface' },
 ];
@@ -29,6 +30,7 @@ test('compiles nested Markdown and prefers the longest matching term', async () 
   assert.match(code, /term="REST API"/);
   assert.match(code, /term="API"/);
   assert.match(code, /id="api-term"/);
+  assert.match(code, /documentationPath="\/docs\/api"/);
 });
 
 test('skips headings, links, code, and existing JSX content', async () => {

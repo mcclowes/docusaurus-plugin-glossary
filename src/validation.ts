@@ -200,6 +200,98 @@ function validateTerm(term: unknown, index: number): ValidationError[] {
     }
   }
 
+  // Optional: documentation ({ path, label? })
+  if ('documentation' in termObj && termObj.documentation !== undefined) {
+    if (
+      termObj.documentation === null ||
+      typeof termObj.documentation !== 'object' ||
+      Array.isArray(termObj.documentation)
+    ) {
+      errors.push({
+        field: `${prefix}.documentation`,
+        message: 'Field "documentation" must be an object',
+        value: termObj.documentation,
+      });
+    } else {
+      const documentation = termObj.documentation as Record<string, unknown>;
+      if (typeof documentation.path !== 'string' || documentation.path.trim() === '') {
+        errors.push({
+          field: `${prefix}.documentation.path`,
+          message: 'Field "documentation.path" must be a non-empty string',
+          value: documentation.path,
+        });
+      } else if (!documentation.path.startsWith('/') || documentation.path.startsWith('//')) {
+        errors.push({
+          field: `${prefix}.documentation.path`,
+          message: 'Field "documentation.path" must be a site-relative path starting with "/"',
+          value: documentation.path,
+        });
+      }
+
+      if (
+        'label' in documentation &&
+        documentation.label !== undefined &&
+        (typeof documentation.label !== 'string' || documentation.label.trim() === '')
+      ) {
+        errors.push({
+          field: `${prefix}.documentation.label`,
+          message: 'Field "documentation.label" must be a non-empty string',
+          value: documentation.label,
+        });
+      }
+    }
+  }
+
+  // Optional: references ({ label, url }[])
+  if ('references' in termObj && termObj.references !== undefined) {
+    if (!Array.isArray(termObj.references)) {
+      errors.push({
+        field: `${prefix}.references`,
+        message: 'Field "references" must be an array',
+        value: termObj.references,
+      });
+    } else {
+      termObj.references.forEach((reference, referenceIndex) => {
+        const referencePrefix = `${prefix}.references[${referenceIndex}]`;
+        if (reference === null || typeof reference !== 'object' || Array.isArray(reference)) {
+          errors.push({
+            field: referencePrefix,
+            message: 'Reference must be an object',
+            value: reference,
+          });
+          return;
+        }
+
+        const referenceObj = reference as Record<string, unknown>;
+        if (typeof referenceObj.label !== 'string' || referenceObj.label.trim() === '') {
+          errors.push({
+            field: `${referencePrefix}.label`,
+            message: 'Field "references[].label" must be a non-empty string',
+            value: referenceObj.label,
+          });
+        }
+        if (typeof referenceObj.url !== 'string' || referenceObj.url.trim() === '') {
+          errors.push({
+            field: `${referencePrefix}.url`,
+            message: 'Field "references[].url" must be a non-empty string',
+            value: referenceObj.url,
+          });
+        } else {
+          try {
+            const url = new URL(referenceObj.url);
+            if (url.protocol !== 'http:' && url.protocol !== 'https:') throw new Error();
+          } catch {
+            errors.push({
+              field: `${referencePrefix}.url`,
+              message: 'Field "references[].url" must be an absolute HTTP(S) URL',
+              value: referenceObj.url,
+            });
+          }
+        }
+      });
+    }
+  }
+
   return errors;
 }
 
@@ -209,7 +301,7 @@ function validateTerm(term: unknown, index: number): ValidationError[] {
  * Ensures the glossary data conforms to the expected schema:
  * - Must be an object with a "terms" array
  * - Each term must have "term" (string) and "definition" (string)
- * - Optional fields: abbreviation (string), relatedTerms (string[]), id (string)
+ * - Optional fields include abbreviation, related terms, documentation, and references
  *
  * @param data - The data to validate
  * @param options - Validation options

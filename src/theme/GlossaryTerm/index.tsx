@@ -1,5 +1,6 @@
 import React, { useMemo, useState, useRef, useEffect, useCallback, useId } from 'react';
 import { usePluginData } from '@docusaurus/useGlobalData';
+import Link from '@docusaurus/Link';
 import styles from './styles.module.css';
 import type { GlossaryData } from '../../types.js';
 
@@ -9,6 +10,7 @@ interface GlossaryTermProps {
   abbreviation?: string;
   id?: string;
   routePath?: string;
+  documentationPath?: string;
   children?: React.ReactNode;
 }
 
@@ -38,6 +40,7 @@ export default function GlossaryTerm({
   abbreviation,
   id,
   routePath = '/glossary',
+  documentationPath,
   children,
 }: GlossaryTermProps) {
   const [showTooltip, setShowTooltip] = useState(false);
@@ -149,12 +152,21 @@ export default function GlossaryTerm({
     return found?.id || term.toLowerCase().replace(/\s+/g, '-');
   }, [id, pluginData, term]);
 
+  const effectiveDocumentationPath = useMemo(() => {
+    if (documentationPath) return documentationPath;
+    const terms = (pluginData && pluginData.terms) || [];
+    const found = terms.find(
+      t => typeof t.term === 'string' && t.term.toLowerCase() === String(term).toLowerCase()
+    );
+    return found?.documentation?.path;
+  }, [documentationPath, pluginData, term]);
+
   const displayText = children || term;
 
   return (
     <span ref={wrapperRef} className={styles.glossaryTermWrapper}>
-      <a
-        href={`${effectiveRoutePath}#${effectiveTermId}`}
+      <Link
+        to={effectiveDocumentationPath || `${effectiveRoutePath}#${effectiveTermId}`}
         className={styles.glossaryTerm}
         onMouseEnter={() => setShowTooltip(true)}
         onMouseLeave={() => setShowTooltip(false)}
@@ -163,7 +175,7 @@ export default function GlossaryTerm({
         aria-describedby={effectiveDefinition ? tooltipId : undefined}
       >
         {displayText}
-      </a>
+      </Link>
       {effectiveDefinition && (
         <span
           ref={tooltipRef}
