@@ -51,3 +51,6 @@ tmp/
 temp/
 
 .docusaurus/
+
+# Added by saggar — local files that shouldn't be committed
+.saggar/**/*.local.*
