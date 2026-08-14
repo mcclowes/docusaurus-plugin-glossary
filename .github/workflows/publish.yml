@@ -34,21 +34,36 @@ jobs:
         id: version
         run: |
           VERSION=$(node -p "require('./package.json').version")
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "tag=v$VERSION" >> $GITHUB_OUTPUT
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "tag=v$VERSION" >> "$GITHUB_OUTPUT"
 
-      - name: Check if already published
+      - name: Check release state
         id: check
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          if git rev-parse "v${{ steps.version.outputs.version }}" >/dev/null 2>&1; then
-            echo "Tag v${{ steps.version.outputs.version }} already exists, skipping"
-            echo "skip=true" >> $GITHUB_OUTPUT
+          PACKAGE_NAME=$(node -p "require('./package.json').name")
+          if npm view "$PACKAGE_NAME@${{ steps.version.outputs.version }}" version >/dev/null 2>&1; then
+            echo "Package $PACKAGE_NAME@${{ steps.version.outputs.version }} is already published"
+            echo "published=true" >> "$GITHUB_OUTPUT"
           else
-            echo "skip=false" >> $GITHUB_OUTPUT
+            echo "published=false" >> "$GITHUB_OUTPUT"
+          fi
+          if git ls-remote --exit-code --tags origin "refs/tags/${{ steps.version.outputs.tag }}" >/dev/null 2>&1; then
+            echo "Tag ${{ steps.version.outputs.tag }} already exists, skipping release"
+            echo "tagged=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "tagged=false" >> "$GITHUB_OUTPUT"
+          fi
+          if gh release view "${{ steps.version.outputs.tag }}" >/dev/null 2>&1; then
+            echo "GitHub Release ${{ steps.version.outputs.tag }} already exists"
+            echo "released=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "released=false" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Setup Node.js
-        if: steps.check.outputs.skip == 'false'
+        if: steps.check.outputs.tagged == 'false'
         uses: actions/setup-node@v6
         with:
           node-version: 20
@@ -56,64 +71,65 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
 
       - name: Upgrade npm for OIDC support
-        if: steps.check.outputs.skip == 'false'
+        if: steps.check.outputs.tagged == 'false'
         run: npm install -g npm@11
 
       - name: Install dependencies
-        if: steps.check.outputs.skip == 'false'
+        if: steps.check.outputs.tagged == 'false'
         run: npm ci --ignore-scripts
 
       - name: Build package
-        if: steps.check.outputs.skip == 'false'
+        if: steps.check.outputs.tagged == 'false'
         run: npm run build
 
       - name: Check formatting
-        if: steps.check.outputs.skip == 'false'
+        if: steps.check.outputs.tagged == 'false'
         run: npm run format:check
 
       - name: Run linter
-        if: steps.check.outputs.skip == 'false'
+        if: steps.check.outputs.tagged == 'false'
         run: npm run lint
 
       - name: Type check
-        if: steps.check.outputs.skip == 'false'
+        if: steps.check.outputs.tagged == 'false'
         run: npm run typecheck
 
       - name: Run tests
-        if: steps.check.outputs.skip == 'false'
+        if: steps.check.outputs.tagged == 'false'
         run: npm test
 
       - name: Check package exports and types
-        if: steps.check.outputs.skip == 'false'
+        if: steps.check.outputs.tagged == 'false'
         run: HUSKY=0 npm run check:exports
 
       - name: Install example site dependencies
-        if: steps.check.outputs.skip == 'false'
+        if: steps.check.outputs.tagged == 'false'
         working-directory: examples/docusaurus-v3
         run: npm ci
 
       - name: Build example site
-        if: steps.check.outputs.skip == 'false'
+        if: steps.check.outputs.tagged == 'false'
         working-directory: examples/docusaurus-v3
         run: npm run build
 
       - name: Publish to npm with provenance
-        if: steps.check.outputs.skip == 'false'
+        if: steps.check.outputs.tagged == 'false' && steps.check.outputs.published == 'false'
         run: |
-          if [[ "${{ steps.version.outputs.version }}" == *"-alpha"* ]] || [[ "${{ steps.version.outputs.version }}" == *"-beta"* ]] || [[ "${{ steps.version.outputs.version }}" == *"-rc"* ]]; then
+          VERSION="${{ steps.version.outputs.version }}"
+          if [[ "$VERSION" == *-alpha* ]] || [[ "$VERSION" == *-beta* ]] || [[ "$VERSION" == *-rc* ]]; then
             npm publish --provenance --access public --tag next
           else
             npm publish --provenance --access public
           fi
 
       - name: Create and push tag
-        if: steps.check.outputs.skip == 'false'
+        if: steps.check.outputs.tagged == 'false'
         run: |
-          git tag ${{ steps.version.outputs.tag }}
-          git push origin ${{ steps.version.outputs.tag }}
+          git tag "${{ steps.version.outputs.tag }}"
+          git push origin "${{ steps.version.outputs.tag }}"
 
       - name: Create GitHub Release
-        if: steps.check.outputs.skip == 'false'
+        if: steps.check.outputs.released == 'false'
         uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ steps.version.outputs.tag }}
