@@ -164,12 +164,15 @@ export default function GlossaryTerm({
   const displayText = children || term;
 
   return (
-    <span ref={wrapperRef} className={styles.glossaryTermWrapper}>
+    <span
+      ref={wrapperRef}
+      className={styles.glossaryTermWrapper}
+      onMouseEnter={() => setShowTooltip(true)}
+      onMouseLeave={() => setShowTooltip(false)}
+    >
       <Link
         to={effectiveDocumentationPath || `${effectiveRoutePath}#${effectiveTermId}`}
         className={styles.glossaryTerm}
-        onMouseEnter={() => setShowTooltip(true)}
-        onMouseLeave={() => setShowTooltip(false)}
         onFocus={() => setShowTooltip(true)}
         onBlur={() => setShowTooltip(false)}
         aria-describedby={effectiveDefinition ? tooltipId : undefined}
