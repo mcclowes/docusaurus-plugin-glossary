@@ -1,5 +1,11 @@
 import { test, expect } from '@playwright/test';
 
+async function tooltipFor(page, link) {
+  const tooltipId = await link.getAttribute('aria-describedby');
+  expect(tooltipId).toBeTruthy();
+  return page.locator(`[id="${tooltipId}"]`);
+}
+
 test.describe('Glossary Plugin', () => {
   test.describe('Glossary Page', () => {
     test('should render the glossary page', async ({ page }) => {
@@ -91,7 +97,7 @@ test.describe('Glossary Plugin', () => {
       await apiLink.hover();
 
       // Check that tooltip appears with role="tooltip"
-      const tooltip = page.locator('[role="tooltip"]').first();
+      const tooltip = await tooltipFor(page, apiLink);
       await expect(tooltip).toBeVisible();
 
       // Verify tooltip contains the term and definition
@@ -131,8 +137,7 @@ test.describe('Glossary Plugin', () => {
       const restLink = page.locator('a[href*="/glossary#rest"]').first();
       await restLink.hover();
 
-      // REST appears twice in content, so use the first matching tooltip.
-      const tooltip = page.locator('[role="tooltip"]').filter({ hasText: 'REST' }).first();
+      const tooltip = await tooltipFor(page, restLink);
       await expect(tooltip).toBeVisible();
       await expect(tooltip).toContainText('REST');
       await expect(tooltip).toContainText('An architectural style');
@@ -145,7 +150,7 @@ test.describe('Glossary Plugin', () => {
       await apiLink.hover();
 
       // Tooltip should be visible
-      const tooltip = page.locator('[role="tooltip"]').first();
+      const tooltip = await tooltipFor(page, apiLink);
       await expect(tooltip).toBeVisible();
 
       // Move mouse away
@@ -166,7 +171,7 @@ test.describe('Glossary Plugin', () => {
       await apiLink.focus();
 
       // Tooltip should appear on focus
-      const tooltip = page.locator('[role="tooltip"]').first();
+      const tooltip = await tooltipFor(page, apiLink);
       await expect(tooltip).toBeVisible();
       await expect(tooltip).toContainText('API');
     });
@@ -184,7 +189,7 @@ test.describe('Glossary Plugin', () => {
       await glossaryLink.hover();
 
       // Check tooltip appears
-      const tooltip = page.locator('[role="tooltip"]').first();
+      const tooltip = await tooltipFor(page, glossaryLink);
       await expect(tooltip).toBeVisible();
       await expect(tooltip).toContainText('API');
     });
