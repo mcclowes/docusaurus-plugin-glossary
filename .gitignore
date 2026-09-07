@@ -54,3 +54,7 @@ temp/
 
 # Added by saggar — local files that shouldn't be committed
 .saggar/**/*.local.*
+
+# Added by saggar — local files that shouldn't be committed
+.saggar/scratchpad.md
+.saggar/jobs/
