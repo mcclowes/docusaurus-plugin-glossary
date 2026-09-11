@@ -409,6 +409,46 @@ describe('remarkGlossaryTerms', () => {
     });
   });
 
+  describe('word boundaries', () => {
+    it('should not match a term inside a word that ends in s', () => {
+      const transformer = remarkGlossaryTerms({
+        terms: [{ term: 'BLE', definition: 'Bluetooth Low Energy' }],
+      });
+
+      const tree = makeTree('Meshtastic enables long range messaging.');
+      transformer(tree);
+      const children = getChildren(tree);
+
+      expect(children.filter(n => n.name === 'GlossaryTerm')).toHaveLength(0);
+    });
+
+    it('should not match a term inside a word that ends in es', () => {
+      const transformer = remarkGlossaryTerms({
+        terms: [{ term: 'BOX', definition: 'A container' }],
+      });
+
+      const tree = makeTree('The subboxes are stacked.');
+      transformer(tree);
+      const children = getChildren(tree);
+
+      expect(children.filter(n => n.name === 'GlossaryTerm')).toHaveLength(0);
+    });
+
+    it('should still match a plural term that starts on a boundary', () => {
+      const transformer = remarkGlossaryTerms({
+        terms: [{ term: 'webhook', definition: 'An HTTP callback' }],
+      });
+
+      const tree = makeTree('Configure webhooks first.');
+      transformer(tree);
+      const children = getChildren(tree);
+
+      const glossaryNodes = children.filter(n => n.name === 'GlossaryTerm');
+      expect(glossaryNodes).toHaveLength(1);
+      expect(glossaryNodes[0].children[0].value).toBe('webhooks');
+    });
+  });
+
   describe('expandAcronymsOnFirstUse', () => {
     const psp = {
       term: 'PSP',

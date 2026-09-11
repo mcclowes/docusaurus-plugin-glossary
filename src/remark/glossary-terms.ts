@@ -211,10 +211,14 @@ export default function remarkGlossaryTerms({
         const afterChar = afterIndex < textLower.length ? textLower[afterIndex] : ' ';
 
         let matchLength = needle.length;
-        let isWordBoundary = !/\w/.test(beforeChar) && !/\w/.test(afterChar);
+        // The plural branches below may only extend a match that already starts on a
+        // boundary. Without this, a match failing the leading test is accepted as soon
+        // as an 's' or 'es' ends the word, linking 'ble' inside 'enables'.
+        const startsAtBoundary = !/\w/.test(beforeChar);
+        let isWordBoundary = startsAtBoundary && !/\w/.test(afterChar);
 
         // Allow trailing 's' plural (e.g., webhook -> webhooks)
-        if (!isWordBoundary && afterChar === 's') {
+        if (startsAtBoundary && !isWordBoundary && afterChar === 's') {
           const nextChar = afterIndex + 1 < textLower.length ? textLower[afterIndex + 1] : ' ';
           if (!/\w/.test(nextChar)) {
             isWordBoundary = true;
@@ -224,6 +228,7 @@ export default function remarkGlossaryTerms({
 
         // Allow trailing 'es' plural (e.g., API -> APIs, box -> boxes)
         if (
+          startsAtBoundary &&
           !isWordBoundary &&
           afterChar === 'e' &&
           afterIndex + 1 < textLower.length &&
