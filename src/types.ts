@@ -56,6 +56,8 @@ export interface GlossaryPluginOptions {
    * normally. Default: false.
    */
   expandAcronymsOnFirstUse?: boolean;
+  /** Link each canonical term once per file, including its aliases and plurals. Default: false. */
+  linkOnlyFirstOccurrence?: boolean;
 }
 
 /** Options accepted by the `remark/glossary-terms` plugin. */
@@ -65,6 +67,8 @@ export interface RemarkGlossaryTermsOptions {
   routePath?: string;
   siteDir?: string | null;
   expandAcronymsOnFirstUse?: boolean;
+  /** Link each canonical term once per file, including its aliases and plurals. Default: false. */
+  linkOnlyFirstOccurrence?: boolean;
 }
 
 /** The transformer returned by the remark plugin factory. */

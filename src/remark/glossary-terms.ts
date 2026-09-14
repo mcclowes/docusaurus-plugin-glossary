@@ -54,6 +54,7 @@ export default function remarkGlossaryTerms({
   routePath = '/glossary',
   siteDir = null,
   expandAcronymsOnFirstUse = false,
+  linkOnlyFirstOccurrence = false,
 }: RemarkGlossaryTermsOptions = {}) {
   let glossaryTerms = terms;
 
@@ -228,6 +229,7 @@ export default function remarkGlossaryTerms({
 
     // Build result array
     for (const match of nonOverlappingMatches) {
+      if (linkOnlyFirstOccurrence && seenTerms.has(match.termObj.term)) continue;
       // Add text before match
       if (match.index > lastIndex) {
         result.push({

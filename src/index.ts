@@ -214,12 +214,14 @@ export function getRemarkPlugin(
     routePath: string;
     siteDir?: string;
     expandAcronymsOnFirstUse: boolean;
+    linkOnlyFirstOccurrence: boolean;
   },
 ] {
   const {
     glossaryPath = 'glossary/glossary.json',
     routePath = '/glossary',
     expandAcronymsOnFirstUse = false,
+    linkOnlyFirstOccurrence = false,
   } = pluginOptions;
 
   const siteDir = context?.siteDir;
@@ -231,6 +233,7 @@ export function getRemarkPlugin(
       routePath,
       siteDir,
       expandAcronymsOnFirstUse,
+      linkOnlyFirstOccurrence,
     },
   ];
 }

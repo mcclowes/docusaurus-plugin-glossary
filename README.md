@@ -419,6 +419,7 @@ module.exports = {
 | `glossaryPath`             | string  | `'glossary/glossary.json'` | Path to glossary JSON file relative to site directory                                                                    |
 | `routePath`                | string  | `'/glossary'`              | URL path for glossary page                                                                                               |
 | `expandAcronymsOnFirstUse` | boolean | `false`                    | When `true`, expand the first canonical occurrence of any term that has an `abbreviation` to "Long Form (Term)" per file |
+| `linkOnlyFirstOccurrence`  | boolean | `false`                    | Link each term only once per file. Aliases and plurals share the same first occurrence. Works with acronym expansion.    |
 
 ### Auto-expanding acronyms on first use
 

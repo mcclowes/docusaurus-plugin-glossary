@@ -130,11 +130,12 @@ export default function preset(context: LoadContext, options: GlossaryPresetOpti
     glossaryPath = 'glossary/glossary.json',
     routePath = '/glossary',
     expandAcronymsOnFirstUse = false,
+    linkOnlyFirstOccurrence = false,
   } = glossary;
 
   // Get the remark plugin configuration
   const remarkPlugin = getRemarkPlugin(
-    { glossaryPath, routePath, expandAcronymsOnFirstUse },
+    { glossaryPath, routePath, expandAcronymsOnFirstUse, linkOnlyFirstOccurrence },
     { siteDir: context.siteDir }
   );
 

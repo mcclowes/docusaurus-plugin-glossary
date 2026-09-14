@@ -17,6 +17,33 @@ function getChildren(tree) {
 }
 
 describe('remarkGlossaryTerms', () => {
+  it('resets first-occurrence tracking between files and expands only the first link', () => {
+    const transform = remarkGlossaryTerms({
+      terms: [
+        {
+          term: 'API',
+          definition: 'An interface',
+          abbreviation: 'Application Programming Interface',
+          aliases: ['interface'],
+        },
+      ],
+      linkOnlyFirstOccurrence: true,
+      expandAcronymsOnFirstUse: true,
+    });
+    for (const text of ['API APIs interface API', 'API API']) {
+      const tree = makeTree(text);
+      transform(tree);
+      const links = getChildren(tree).filter(node => node.name === 'GlossaryTerm');
+      expect(links).toHaveLength(1);
+      expect(links[0].children[0].value).toBe('Application Programming Interface (API)');
+    }
+    const aliasFirst = makeTree('interface API');
+    transform(aliasFirst);
+    const links = getChildren(aliasFirst).filter(node => node.name === 'GlossaryTerm');
+    expect(links).toHaveLength(1);
+    expect(links[0].children[0].value).toBe('interface');
+  });
+
   it.each(['éboxes', 'boxé', 'caféAPI', 'API中', '中API', '𐐀API', 'API𐐀', 'API\u0301', '٢API'])(
     'does not link inside the Unicode word %s',
     text => {
