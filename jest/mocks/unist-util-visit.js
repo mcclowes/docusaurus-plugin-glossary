@@ -13,6 +13,7 @@ function visit(tree, test, visitor) {
     // Call visitor if test matches
     const matches =
       !test ||
+      (Array.isArray(test) && test.includes(node.type)) ||
       (typeof test === 'string' && test === node.type) ||
       (typeof test === 'object' && test.type === node.type);
     if (matches) {

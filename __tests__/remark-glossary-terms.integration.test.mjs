@@ -41,6 +41,14 @@ test('skips headings, links, code, and existing JSX content', async () => {
   assert.equal((code.match(/term="API"/g) || []).length, 1);
 });
 
+test('skips all descendants of links, reference links, headings, and MDX elements', async () => {
+  const code = await compileWithGlossary(
+    '# **API**\n\n[**API**](https://example.com) [*API*][guide]\n\n[guide]: https://example.com\n\n<span>**API**</span>\n\n<div>\n\n**API**\n\n</div>\n\nAPI'
+  );
+
+  assert.equal((code.match(/term="API"/g) || []).length, 1);
+});
+
 test('does not match terms inside larger Unicode words', async () => {
   const code = await compileWithGlossary('xAPIvalue caféAPI API中 𐐀API APÍ. İ API.');
 

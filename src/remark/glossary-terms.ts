@@ -331,37 +331,31 @@ export default function remarkGlossaryTerms({
     return `${longForm} (${match.originalText})`;
   }
 
-  // Collect text nodes that live inside a heading (h1-h6) so we can skip them.
-  // Headings are excluded from auto-linking because glossary anchors inside
-  // headings clash with the heading's own link/anchor behavior and are noisy.
-  function collectHeadingTextNodes(tree: Root): WeakSet<Text> {
+  function collectExcludedTextNodes(tree: Root): WeakSet<Text> {
     const skip = new WeakSet<Text>();
-    visit(tree, 'heading', headingNode => {
-      visit(headingNode, 'text', textNode => {
-        skip.add(textNode);
-      });
-    });
+    visit(
+      tree,
+      ['heading', 'link', 'linkReference', 'mdxJsxFlowElement', 'mdxJsxTextElement'],
+      node => {
+        visit(node, 'text', textNode => {
+          skip.add(textNode);
+        });
+      }
+    );
     return skip;
   }
 
   // Return the transformer function
   const transformer = (tree: Root): void => {
     let usedGlossaryTerm = false;
-    const textNodesInHeadings = collectHeadingTextNodes(tree);
+    const excludedTextNodes = collectExcludedTextNodes(tree);
     // Per-file tracking: each transformer invocation gets a fresh Set so acronym
     // expansion fires at most once per term per file.
     const seenTerms = new Set<string>();
     visit(tree, 'text', (node, index, parent) => {
       if (index === undefined || !parent) return;
-      // Skip text nodes inside code blocks, links, or existing MDX components
-      if (parent.type === 'link' || parent.type === 'mdxJsxTextElement') {
-        return;
-      }
-
-      // Skip text nodes that are descendants of a heading (h1-h6)
-      if (textNodesInHeadings.has(node)) {
-        return;
-      }
+      // Generated components are not in the precomputed exclusion set.
+      if (parent.type === 'mdxJsxTextElement' || excludedTextNodes.has(node)) return;
 
       // Replace terms in text node
       const replacements = replaceTermsInText(node.value, seenTerms);
