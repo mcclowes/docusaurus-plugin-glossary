@@ -60,8 +60,12 @@ export default function GlossaryTerm({
 
     const preferredGap = 8; // px
 
+    // Handle sticky site headers covering the top of the viewport
+    const stickyHeader = document.querySelector('.navbar');
+    const topBoundary = stickyHeader ? Math.max(0, stickyHeader.getBoundingClientRect().bottom) : 0;
+
     // Decide top vs bottom based on available space
-    const hasSpaceAbove = wrapperRect.top >= tooltipRect.height + preferredGap;
+    const hasSpaceAbove = wrapperRect.top - topBoundary >= tooltipRect.height + preferredGap;
     const hasSpaceBelow = viewportHeight - wrapperRect.bottom >= tooltipRect.height + preferredGap;
     const nextPlacement = hasSpaceAbove || !hasSpaceBelow ? 'top' : 'bottom';
 
@@ -81,7 +85,7 @@ export default function GlossaryTerm({
     );
 
     setPlacement(nextPlacement);
-    setTooltipStyle({ top: Math.max(4, top), left });
+    setTooltipStyle({ top: Math.max(topBoundary + 4, top), left });
   }, []);
 
   useEffect(() => {
