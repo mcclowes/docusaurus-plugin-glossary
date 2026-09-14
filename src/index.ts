@@ -93,7 +93,11 @@ export default function glossaryPlugin(
   context: LoadContext,
   options: GlossaryPluginOptions = {}
 ): Plugin {
-  const { glossaryPath = 'glossary/glossary.json', routePath = '/glossary' } = options;
+  const {
+    glossaryPath = 'glossary/glossary.json',
+    routePath = '/glossary',
+    generatePage = true,
+  } = options;
 
   return {
     name: 'docusaurus-plugin-glossary',
@@ -154,18 +158,20 @@ export default function glossaryPlugin(
         })
       );
 
-      // Add glossary page route
-      addRoute({
-        path: routePath,
-        component: path.join(currentDir, 'components/GlossaryPage.js'),
-        exact: true,
-        modules: {
-          glossaryData: glossaryDataPath,
-        },
-      });
+      if (generatePage) {
+        addRoute({
+          path: routePath,
+          component: path.join(currentDir, 'components/GlossaryPage.js'),
+          exact: true,
+          modules: {
+            glossaryData: glossaryDataPath,
+          },
+        });
+      }
 
       // Expose global data for runtime lookups (used by GlossaryTerm)
       setGlobalData({
+        ...glossaryContent,
         terms: glossaryContent.terms || [],
         routePath,
       });

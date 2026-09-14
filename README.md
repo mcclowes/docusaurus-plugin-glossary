@@ -420,6 +420,8 @@ module.exports = {
 | -------------------------- | ------- | -------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
 | `glossaryPath`             | string  | `'glossary/glossary.json'` | Path to glossary JSON file relative to site directory                                                                    |
 | `routePath`                | string  | `'/glossary'`              | URL path for glossary page                                                                                               |
+| `generatePage`             | boolean | `true`                     | Register the standalone glossary page. Set to `false` when rendering the glossary in a doc.                              |
+| `id`                       | string  | `default`                  | Docusaurus plugin instance ID for sites with multiple glossaries.                                                        |
 | `expandAcronymsOnFirstUse` | boolean | `false`                    | When `true`, expand the first canonical occurrence of any term that has an `abbreviation` to "Long Form (Term)" per file |
 | `linkOnlyFirstOccurrence`  | boolean | `false`                    | Link each term only once per file. Aliases and plurals share the same first occurrence. Works with acronym expansion.    |
 
@@ -674,3 +676,11 @@ Built for Docusaurus v3.x
 - **Build system**: tsup
 - **Package entry points**: `dist/index.js` for ESM and `dist/index.cjs` for CommonJS
 - **Exports**: Main plugin, remark plugin via package.json exports field
+
+### Reusable glossary content
+
+Import `Glossary` from `docusaurus-plugin-glossary/components/Glossary` to render
+search, alphabet navigation, and term cards inside your own page. Pass parsed
+glossary data as `glossaryData`; set `showTitle={false}` when the surrounding doc
+already has a title. Set the plugin's `generatePage` to `false` and `routePath` to
+the doc URL to avoid duplicate routes.

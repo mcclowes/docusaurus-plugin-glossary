@@ -7,6 +7,29 @@ async function tooltipFor(page, link) {
 }
 
 test.describe('Glossary Plugin', () => {
+  test('keeps the module docs sidebar and built-in glossary UI', async ({ page }) => {
+    await page.goto('/module/overview');
+    const link = page.locator('a[href="/module/glossary#connector"]');
+    await expect(link).toHaveCount(1);
+    await link.click();
+    await expect(page).toHaveURL(/\/module\/glossary#connector$/);
+    await expect(page.locator('.theme-doc-sidebar-container')).toBeVisible();
+    await expect(page.locator('h1')).toHaveCount(1);
+    await expect(page.locator('dt')).toHaveCount(2);
+    await expect(page.getByText('Terms for the connector module')).toBeVisible();
+    await page.getByPlaceholder('Search terms...').fill('Integrations');
+    await expect(page.locator('dt')).toHaveCount(1);
+    await expect(page.locator('#connector')).toBeVisible();
+  });
+
+  test('displays and searches category badges', async ({ page }) => {
+    await page.goto('/glossary');
+    await expect(page.getByText('Plugins & APIs', { exact: true })).toBeVisible();
+    await page.getByPlaceholder('Search terms...').fill('plugins');
+    await expect(page.locator('dt')).toHaveCount(1);
+    await expect(page.locator('#api')).toBeVisible();
+  });
+
   test.describe('Glossary Page', () => {
     test('should render the glossary page', async ({ page }) => {
       await page.goto('/glossary');

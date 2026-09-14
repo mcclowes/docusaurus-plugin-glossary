@@ -1,5 +1,6 @@
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { getRemarkPlugin } from '../../dist/index.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -44,6 +45,34 @@ export default {
   ],
 
   plugins: [
+    [
+      path.resolve(__dirname, '../../dist/index.js'),
+      {
+        id: 'module',
+        glossaryPath: 'glossary/module.json',
+        routePath: '/module/glossary',
+        generatePage: false,
+      },
+    ],
+    [
+      '@docusaurus/plugin-content-docs',
+      {
+        id: 'module',
+        path: 'module-docs',
+        routeBasePath: 'module',
+        sidebarPath: path.resolve(__dirname, './module-sidebars.js'),
+        remarkPlugins: [
+          getRemarkPlugin(
+            {
+              glossaryPath: 'glossary/module.json',
+              routePath: '/module/glossary',
+              linkOnlyFirstOccurrence: true,
+            },
+            { siteDir: __dirname }
+          ),
+        ],
+      },
+    ],
     // Plugin to configure webpack to ignore Node.js modules
     function () {
       return {

@@ -1,0 +1,14 @@
+---
+title: Module glossary
+sidebar_position: 2
+---
+
+import Glossary from '../../../dist/components/Glossary.js';
+import { usePluginData } from '@docusaurus/useGlobalData';
+
+export function ModuleGlossary() {
+  const glossaryData = usePluginData('docusaurus-plugin-glossary', 'module');
+  return <Glossary glossaryData={glossaryData} showTitle={false} />;
+}
+
+<ModuleGlossary />

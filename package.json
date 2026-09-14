@@ -36,6 +36,16 @@
         "types": "./dist/remark/glossary-terms.d.cts",
         "default": "./dist/remark/glossary-terms.cjs"
       }
+    },
+    "./components/Glossary": {
+      "import": {
+        "types": "./dist/components/Glossary.d.ts",
+        "default": "./dist/components/Glossary.js"
+      },
+      "require": {
+        "types": "./dist/components/Glossary.d.cts",
+        "default": "./dist/components/Glossary.cjs"
+      }
     }
   },
   "files": [

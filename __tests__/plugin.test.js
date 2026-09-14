@@ -6,6 +6,29 @@ import glossaryPluginModule from '../src/index';
 const glossaryPlugin = glossaryPluginModule.default || glossaryPluginModule;
 
 describe('glossaryPlugin', () => {
+  it('keeps global glossary data without registering a page when generatePage is false', async () => {
+    const plugin = glossaryPlugin(
+      { siteDir: '/tmp' },
+      { generatePage: false, routePath: '/docs/module-glossary' }
+    );
+    const content = {
+      title: 'Module glossary',
+      description: 'Module terms',
+      terms: [{ term: 'API', definition: 'An interface' }],
+    };
+    const actions = {
+      createData: jest.fn(async () => 'data.json'),
+      addRoute: jest.fn(),
+      setGlobalData: jest.fn(),
+    };
+    await plugin.contentLoaded({ content, actions });
+    expect(actions.addRoute).not.toHaveBeenCalled();
+    expect(actions.setGlobalData).toHaveBeenCalledWith({
+      ...content,
+      routePath: '/docs/module-glossary',
+    });
+  });
+
   let tempDir;
   let context;
 

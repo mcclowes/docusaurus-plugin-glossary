@@ -47,6 +47,9 @@ export interface GlossaryData {
 
 /** Options accepted by the glossary plugin / preset. */
 export interface GlossaryPluginOptions {
+  id?: string;
+  /** Register the standalone glossary route. Default: true. */
+  generatePage?: boolean;
   glossaryPath?: string;
   routePath?: string;
   autoLinkTerms?: boolean;

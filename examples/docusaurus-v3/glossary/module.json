@@ -1,0 +1,12 @@
+{
+  "title": "Module glossary",
+  "description": "Terms for the connector module",
+  "terms": [
+    {
+      "term": "Connector",
+      "definition": "A connection to an external service.",
+      "category": "Integrations"
+    },
+    { "term": "Module", "definition": "An independently configured part of the application." }
+  ]
+}

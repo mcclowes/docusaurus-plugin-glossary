@@ -1,0 +1,180 @@
+import React, { useState, useMemo } from 'react';
+import Link from '@docusaurus/Link';
+import styles from './GlossaryPage.module.css';
+import type { GlossaryData, GlossaryTerm } from '../types.js';
+
+/**
+ * Groups glossary terms by their first letter
+ */
+function groupTermsByLetter(terms: GlossaryTerm[]): Record<string, GlossaryTerm[]> {
+  const grouped: Record<string, GlossaryTerm[]> = {};
+
+  terms.forEach(term => {
+    const firstLetter = term.term.charAt(0).toUpperCase();
+    if (!grouped[firstLetter]) {
+      grouped[firstLetter] = [];
+    }
+    grouped[firstLetter].push(term);
+  });
+
+  // Sort each group alphabetically
+  Object.keys(grouped).forEach(letter => {
+    grouped[letter].sort((a, b) => a.term.localeCompare(b.term));
+  });
+
+  return grouped;
+}
+
+export interface GlossaryProps {
+  glossaryData?: GlossaryData | null;
+  showTitle?: boolean;
+}
+
+export default function Glossary({ glossaryData, showTitle = true }: GlossaryProps) {
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const terms = useMemo(() => glossaryData?.terms || [], [glossaryData?.terms]);
+  const termIds = useMemo(
+    () =>
+      new Map(
+        terms.map(term => [
+          term.term.toLowerCase(),
+          term.id || term.term.toLowerCase().replace(/\s+/g, '-'),
+        ])
+      ),
+    [terms]
+  );
+
+  // Filter terms based on search
+  const filteredTerms = useMemo(() => {
+    if (!searchTerm) return terms;
+
+    const lowerSearch = searchTerm.toLowerCase();
+    return terms.filter(term => {
+      const haystack = [
+        term.term,
+        term.definition,
+        term.abbreviation,
+        term.category,
+        term.documentation?.label,
+        ...(term.aliases || []),
+        ...(term.references || []).map(reference => reference.label),
+      ]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase();
+      return haystack.includes(lowerSearch);
+    });
+  }, [terms, searchTerm]);
+
+  // Group terms by first letter
+  const groupedTerms = useMemo(() => {
+    return groupTermsByLetter(filteredTerms);
+  }, [filteredTerms]);
+
+  const letters = Object.keys(groupedTerms).sort();
+
+  const glossaryTitle = glossaryData?.title || 'Glossary';
+
+  return (
+    <div className={styles.glossaryContainer}>
+      <header className={styles.glossaryHeader}>
+        {showTitle && <h1>{glossaryTitle}</h1>}
+        <p className={styles.glossaryDescription}>
+          {glossaryData?.description || 'A collection of terms and their definitions'}
+        </p>
+
+        <div className={styles.searchContainer}>
+          <input
+            type="text"
+            placeholder="Search terms..."
+            className={styles.searchInput}
+            value={searchTerm}
+            onChange={e => setSearchTerm(e.target.value)}
+          />
+        </div>
+      </header>
+
+      {filteredTerms.length === 0 ? (
+        <div className={styles.noResults}>
+          <p>No terms found matching "{searchTerm}"</p>
+        </div>
+      ) : (
+        <div className={styles.glossaryContent}>
+          {/* Letter navigation */}
+          <nav className={styles.letterNav}>
+            {letters.map(letter => (
+              <a key={letter} href={`#letter-${letter}`} className={styles.letterLink}>
+                {letter}
+              </a>
+            ))}
+          </nav>
+
+          {/* Terms grouped by letter */}
+          {letters.map(letter => (
+            <section key={letter} id={`letter-${letter}`} className={styles.letterSection}>
+              <h2 className={styles.letterHeading}>{letter}</h2>
+              <dl className={styles.termList}>
+                {groupedTerms[letter].map((term, index) => (
+                  <div
+                    key={`${letter}-${index}`}
+                    className={styles.termItem}
+                    id={term.id || term.term.toLowerCase().replace(/\s+/g, '-')}
+                  >
+                    <dt className={styles.termName}>
+                      {term.term}
+                      {term.abbreviation && (
+                        <span className={styles.abbreviation}> ({term.abbreviation})</span>
+                      )}
+                      {term.category && <span className={styles.category}>{term.category}</span>}
+                    </dt>
+                    <dd className={styles.termDefinition}>
+                      {term.definition}
+                      {term.documentation && (
+                        <div className={styles.documentation}>
+                          <Link to={term.documentation.path}>
+                            {term.documentation.label || 'Read more'}
+                          </Link>
+                        </div>
+                      )}
+                      {term.references && term.references.length > 0 && (
+                        <div className={styles.references}>
+                          <strong>References:</strong>{' '}
+                          {term.references.map((reference, idx) => (
+                            <React.Fragment key={`${reference.url}-${idx}`}>
+                              {idx > 0 && ', '}
+                              <a href={reference.url}>{reference.label}</a>
+                            </React.Fragment>
+                          ))}
+                        </div>
+                      )}
+                      {term.relatedTerms && term.relatedTerms.length > 0 && (
+                        <div className={styles.relatedTerms}>
+                          <strong>Related terms:</strong>{' '}
+                          {term.relatedTerms.map((related, idx) => (
+                            <React.Fragment key={idx}>
+                              {idx > 0 && ', '}
+                              <a
+                                href={`#${termIds.get(related.toLowerCase()) || related.toLowerCase().replace(/\s+/g, '-')}`}
+                              >
+                                {related}
+                              </a>
+                            </React.Fragment>
+                          ))}
+                        </div>
+                      )}
+                    </dd>
+                  </div>
+                ))}
+              </dl>
+            </section>
+          ))}
+        </div>
+      )}
+
+      <footer className={styles.glossaryFooter}>
+        <p>Total terms: {terms.length}</p>
+      </footer>
+    </div>
+  );
+}
