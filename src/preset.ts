@@ -179,8 +179,7 @@ export default function preset(context: LoadContext, options: GlossaryPresetOpti
 
   // Plugin tuple type: [plugin-name, options] or plugin function
   type PluginEntry =
-    | [string, Record<string, unknown>]
-    | ((ctx: LoadContext) => ReturnType<typeof glossaryPlugin>);
+    [string, Record<string, unknown>] | ((ctx: LoadContext) => ReturnType<typeof glossaryPlugin>);
 
   const plugins: PluginEntry[] = [
     // Add the glossary plugin first
