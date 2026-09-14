@@ -43,6 +43,17 @@ function validateTerm(term: unknown, index: number): ValidationError[] {
 
   const termObj = term as Record<string, unknown>;
 
+  if (
+    termObj.category !== undefined &&
+    (typeof termObj.category !== 'string' || termObj.category.trim() === '')
+  ) {
+    errors.push({
+      field: `${prefix}.category`,
+      message: 'Field "category" must be a non-empty string',
+      value: termObj.category,
+    });
+  }
+
   // Required: term (string)
   if (!('term' in termObj)) {
     errors.push({

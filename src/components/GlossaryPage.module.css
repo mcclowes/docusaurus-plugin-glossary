@@ -110,6 +110,19 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
+.category {
+  display: inline-block;
+  margin-left: 0.75rem;
+  padding: 0.125rem 0.5rem;
+  border: 1px solid var(--ifm-color-emphasis-300);
+  border-radius: 1rem;
+  background: var(--ifm-color-emphasis-100);
+  color: var(--ifm-font-color-base);
+  font-size: 0.75rem;
+  font-weight: 500;
+  vertical-align: middle;
+}
+
 .termName {
   font-size: 1.25rem;
   font-weight: bold;

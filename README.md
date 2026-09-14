@@ -145,6 +145,8 @@ Create a JSON file at `glossary/glossary.json` (or your configured path) in your
 
 **Optional fields:**
 
+- `category` (string): A non-empty category label, displayed as a badge beside the term and included in glossary search
+
 - `abbreviation` (string): The full form if the term is an abbreviation
 - `relatedTerms` (string[]): Array of related term names that link to other glossary entries
 - `id` (string): Custom ID for linking (auto-generated from term name if not provided)

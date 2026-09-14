@@ -54,6 +54,21 @@ const mockGlossaryData = {
 };
 
 describe('GlossaryPage', () => {
+  it('displays category badges and searches category labels', async () => {
+    const user = userEvent.setup();
+    const data = {
+      terms: [
+        { term: 'API', definition: 'An interface', category: 'Plugins & APIs' },
+        { term: 'Deploy', definition: 'Publish changes' },
+      ],
+    };
+    render(<GlossaryPage glossaryData={data} />);
+    expect(screen.getByText('Plugins & APIs')).toBeInTheDocument();
+    await user.type(screen.getByPlaceholderText('Search terms...'), 'plugins');
+    expect(screen.getByText('API')).toBeInTheDocument();
+    expect(screen.queryByText('Deploy')).not.toBeInTheDocument();
+  });
+
   it('should render glossary with all terms', () => {
     render(<GlossaryPage glossaryData={mockGlossaryData} />);
 

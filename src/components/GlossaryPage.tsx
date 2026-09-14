@@ -54,6 +54,7 @@ export default function GlossaryPage({ glossaryData }: { glossaryData?: Glossary
         term.term,
         term.definition,
         term.abbreviation,
+        term.category,
         term.documentation?.label,
         ...(term.aliases || []),
         ...(term.references || []).map(reference => reference.label),
@@ -125,6 +126,7 @@ export default function GlossaryPage({ glossaryData }: { glossaryData?: Glossary
                         {term.abbreviation && (
                           <span className={styles.abbreviation}> ({term.abbreviation})</span>
                         )}
+                        {term.category && <span className={styles.category}>{term.category}</span>}
                       </dt>
                       <dd className={styles.termDefinition}>
                         {term.definition}

@@ -28,6 +28,7 @@ export interface GlossaryTerm {
   term: string;
   definition: string;
   abbreviation?: string;
+  category?: string;
   relatedTerms?: string[];
   id?: string;
   autoLink?: boolean;

@@ -5,6 +5,17 @@ import {
 } from '../src/validation.js';
 
 describe('validateGlossaryData', () => {
+  it.each([null, 42, [], '', '  '])('rejects invalid category %p', category => {
+    const result = validateGlossaryData(
+      { terms: [{ term: 'API', definition: 'An interface', category }] },
+      { throwOnError: false }
+    );
+    expect(result.valid).toBe(false);
+    expect(result.errors).toEqual(
+      expect.arrayContaining([expect.objectContaining({ field: 'terms[0].category' })])
+    );
+  });
+
   describe('valid data', () => {
     it('should validate a correct glossary structure', () => {
       const data = {
@@ -28,6 +39,7 @@ describe('validateGlossaryData', () => {
             term: 'API',
             definition: 'Application Programming Interface',
             abbreviation: 'API',
+            category: 'Plugins & APIs',
             relatedTerms: ['SDK', 'REST'],
             id: 'api-term',
             documentation: { path: '/docs/api', label: 'Read the API guide' },
