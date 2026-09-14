@@ -29,6 +29,10 @@ interface MatchableTerm {
 const glossaryCache = new Map<string, CacheEntry>();
 const CACHE_TTL = 5000; // 5 seconds TTL to allow for file changes during dev
 
+const PLURAL_SUFFIXES = ['', 's', 'es'];
+
+const isWordChar = (char: string | undefined) => char !== undefined && /\w/.test(char);
+
 /**
  * Creates a remark plugin that automatically detects and replaces glossary terms in markdown
  *
@@ -203,45 +207,19 @@ export default function remarkGlossaryTerms({
         const index = haystack.indexOf(needle, searchIndex);
         if (index === -1) break;
 
-        // Check if it's a whole word match, with simple plural tolerance ('s' or 'es').
-        // Word-boundary detection uses the lowercased text so letter-class checks
-        // behave consistently regardless of the term's case-sensitivity setting.
-        const beforeChar = index > 0 ? textLower[index - 1] : ' ';
+        // Whole-word match, tolerating a plural suffix (webhook -> webhooks, box -> boxes).
+        // Boundaries are checked on the lowercased text so letter-class checks behave
+        // consistently regardless of the term's case-sensitivity setting.
         const afterIndex = index + needle.length;
-        const afterChar = afterIndex < textLower.length ? textLower[afterIndex] : ' ';
+        const suffix = isWordChar(textLower[index - 1])
+          ? undefined
+          : PLURAL_SUFFIXES.find(
+              s =>
+                textLower.startsWith(s, afterIndex) && !isWordChar(textLower[afterIndex + s.length])
+            );
 
-        let matchLength = needle.length;
-        // The plural branches below may only extend a match that already starts on a
-        // boundary. Without this, a match failing the leading test is accepted as soon
-        // as an 's' or 'es' ends the word, linking 'ble' inside 'enables'.
-        const startsAtBoundary = !/\w/.test(beforeChar);
-        let isWordBoundary = startsAtBoundary && !/\w/.test(afterChar);
-
-        // Allow trailing 's' plural (e.g., webhook -> webhooks)
-        if (startsAtBoundary && !isWordBoundary && afterChar === 's') {
-          const nextChar = afterIndex + 1 < textLower.length ? textLower[afterIndex + 1] : ' ';
-          if (!/\w/.test(nextChar)) {
-            isWordBoundary = true;
-            matchLength = needle.length + 1;
-          }
-        }
-
-        // Allow trailing 'es' plural (e.g., API -> APIs, box -> boxes)
-        if (
-          startsAtBoundary &&
-          !isWordBoundary &&
-          afterChar === 'e' &&
-          afterIndex + 1 < textLower.length &&
-          textLower[afterIndex + 1] === 's'
-        ) {
-          const nextChar = afterIndex + 2 < textLower.length ? textLower[afterIndex + 2] : ' ';
-          if (!/\w/.test(nextChar)) {
-            isWordBoundary = true;
-            matchLength = needle.length + 2;
-          }
-        }
-
-        if (isWordBoundary) {
+        if (suffix !== undefined) {
+          const matchLength = needle.length + suffix.length;
           matches.push({
             index,
             length: matchLength,
