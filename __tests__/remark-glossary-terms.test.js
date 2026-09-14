@@ -447,6 +447,43 @@ describe('remarkGlossaryTerms', () => {
       expect(glossaryNodes).toHaveLength(1);
       expect(glossaryNodes[0].children[0].value).toBe('webhooks');
     });
+
+    it.each([
+      ['boxes', 'boxes'],
+      ['boxes.', 'boxes'],
+      ['(boxes)', 'boxes'],
+      ['box-es', 'box'],
+      ['boxed', null],
+      ['boxe', null],
+      ['boxess', null],
+      ['inbox', null],
+      ['inboxes', null],
+      ['1boxes', null],
+      ['_boxes', null],
+      ['boxes_', null],
+    ])('links %j as %j', (text, expected) => {
+      const transformer = remarkGlossaryTerms({
+        terms: [{ term: 'box', definition: 'A container' }],
+      });
+
+      const tree = makeTree(text);
+      transformer(tree);
+      const glossaryNodes = getChildren(tree).filter(n => n.name === 'GlossaryTerm');
+
+      expect(glossaryNodes.map(n => n.children[0].value)).toEqual(expected ? [expected] : []);
+    });
+
+    it('should not match a case-sensitive plural inside a word', () => {
+      const transformer = remarkGlossaryTerms({
+        terms: [{ term: 'API', definition: 'Interface', caseSensitive: true }],
+      });
+
+      const tree = makeTree('myAPIs and APIs');
+      transformer(tree);
+      const glossaryNodes = getChildren(tree).filter(n => n.name === 'GlossaryTerm');
+
+      expect(glossaryNodes.map(n => n.children[0].value)).toEqual(['APIs']);
+    });
   });
 
   describe('expandAcronymsOnFirstUse', () => {
