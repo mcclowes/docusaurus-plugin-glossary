@@ -17,6 +17,36 @@ function getChildren(tree) {
 }
 
 describe('remarkGlossaryTerms', () => {
+  it.each([
+    [{ term: 'API' }, 'API', 'APIs'],
+    [{ term: 'box' }, 'box', 'boxes'],
+    [{ term: 'container', aliases: ['box'] }, 'box', 'boxes'],
+    [{ term: 'BOX', caseSensitive: true }, 'BOX', 'BOXes'],
+  ])('should respect both word boundaries for %j plurals', (term, singular, plural) => {
+    const transformer = remarkGlossaryTerms({
+      terms: [{ ...term, definition: 'A glossary definition' }],
+    });
+    const tree = makeTree(
+      `${singular} in${plural} 2${plural} _${plural} ${plural}extra ` +
+        `${plural}2 ${plural}_value ${plural}, (${plural}) ${plural}`
+    );
+
+    transformer(tree);
+    const glossaryNodes = getChildren(tree).filter(node => node.name === 'GlossaryTerm');
+
+    expect(glossaryNodes.map(node => node.children[0].value)).toEqual([
+      singular,
+      plural,
+      plural,
+      plural,
+    ]);
+    for (const node of glossaryNodes) {
+      expect(node.attributes).toContainEqual(
+        expect.objectContaining({ name: 'term', value: term.term })
+      );
+    }
+  });
+
   it('should auto-link terms by default', () => {
     const transformer = remarkGlossaryTerms({
       terms: [{ term: 'API', definition: 'Application Programming Interface' }],

@@ -14,11 +14,11 @@ const terms = [
   { term: 'REST API', definition: 'A RESTful interface' },
 ];
 
-async function compileWithGlossary(source) {
+async function compileWithGlossary(source, glossaryTerms = terms) {
   return String(
     await compile(source, {
       jsx: true,
-      remarkPlugins: [[remarkGlossaryTerms, { terms }]],
+      remarkPlugins: [[remarkGlossaryTerms, { terms: glossaryTerms }]],
     })
   );
 }
@@ -45,6 +45,24 @@ test('does not match terms inside larger Unicode words', async () => {
   const code = await compileWithGlossary('The xAPIvalue differs from API.');
 
   assert.equal((code.match(/term="API"/g) || []).length, 1);
+});
+
+test('does not link BLE inside enables', async () => {
+  const source = 'Meshtastic is a project that enables you to use inexpensive LoRa radios';
+  const code = await compileWithGlossary(source, [
+    { term: 'BLE', definition: 'Bluetooth Low Energy' },
+  ]);
+
+  assert.doesNotMatch(code, /<GlossaryTerm/);
+  assert.ok(code.includes(source));
+});
+
+test('does not link box inside inboxes', async () => {
+  const source = 'Check your inboxes.';
+  const code = await compileWithGlossary(source, [{ term: 'box', definition: 'A container' }]);
+
+  assert.doesNotMatch(code, /<GlossaryTerm/);
+  assert.ok(code.includes(source));
 });
 
 test('compiles repeated occurrences without malformed MDX', async () => {

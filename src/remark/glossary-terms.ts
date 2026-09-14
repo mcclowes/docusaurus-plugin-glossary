@@ -211,10 +211,11 @@ export default function remarkGlossaryTerms({
         const afterChar = afterIndex < textLower.length ? textLower[afterIndex] : ' ';
 
         let matchLength = needle.length;
-        let isWordBoundary = !/\w/.test(beforeChar) && !/\w/.test(afterChar);
+        const hasLeadingBoundary = !/\w/.test(beforeChar);
+        let isWordBoundary = hasLeadingBoundary && !/\w/.test(afterChar);
 
         // Allow trailing 's' plural (e.g., webhook -> webhooks)
-        if (!isWordBoundary && afterChar === 's') {
+        if (hasLeadingBoundary && !isWordBoundary && afterChar === 's') {
           const nextChar = afterIndex + 1 < textLower.length ? textLower[afterIndex + 1] : ' ';
           if (!/\w/.test(nextChar)) {
             isWordBoundary = true;
@@ -224,6 +225,7 @@ export default function remarkGlossaryTerms({
 
         // Allow trailing 'es' plural (e.g., API -> APIs, box -> boxes)
         if (
+          hasLeadingBoundary &&
           !isWordBoundary &&
           afterChar === 'e' &&
           afterIndex + 1 < textLower.length &&
