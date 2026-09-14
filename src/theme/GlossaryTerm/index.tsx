@@ -60,10 +60,7 @@ export default function GlossaryTerm({
 
     const preferredGap = 8; // px
 
-    // A sticky site header covers the top of the viewport, and the tooltip cannot simply
-    // paint over it: Docusaurus wraps doc content in elements using `isolation: isolate`,
-    // which traps the tooltip's z-index in a stacking context below the header. Treat the
-    // header's bottom edge as the top of the usable area so those cases flip below instead.
+    // Handle sticky site headers covering the top of the viewport
     const stickyHeader = document.querySelector('.navbar');
     const topBoundary = stickyHeader ? Math.max(0, stickyHeader.getBoundingClientRect().bottom) : 0;
 
