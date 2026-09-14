@@ -17,6 +17,40 @@ function getChildren(tree) {
 }
 
 describe('remarkGlossaryTerms', () => {
+  it.each(['éboxes', 'boxé', 'caféAPI', 'API中', '中API', '𐐀API', 'API𐐀', 'API\u0301', '٢API'])(
+    'does not link inside the Unicode word %s',
+    text => {
+      const tree = makeTree(text);
+      remarkGlossaryTerms({
+        terms: [
+          { term: 'API', definition: '' },
+          { term: 'box', definition: '' },
+        ],
+      })(tree);
+      expect(getChildren(tree)).toEqual([{ type: 'text', value: text }]);
+    }
+  );
+
+  it.each([false, true])(
+    'preserves original offsets after expanding lowercase characters (caseSensitive: %s)',
+    caseSensitive => {
+      const tree = makeTree('İ API and box here.');
+      remarkGlossaryTerms({
+        terms: [
+          { term: 'API', definition: '', caseSensitive },
+          { term: 'box', definition: '', caseSensitive },
+        ],
+      })(tree);
+      const children = getChildren(tree);
+      expect(
+        children.filter(node => node.name === 'GlossaryTerm').map(node => node.children[0].value)
+      ).toEqual(['API', 'box']);
+      expect(children.map(node => node.value ?? node.children[0].value).join('')).toBe(
+        'İ API and box here.'
+      );
+    }
+  );
+
   it('should auto-link terms by default', () => {
     const transformer = remarkGlossaryTerms({
       terms: [{ term: 'API', definition: 'Application Programming Interface' }],

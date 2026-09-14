@@ -42,9 +42,10 @@ test('skips headings, links, code, and existing JSX content', async () => {
 });
 
 test('does not match terms inside larger Unicode words', async () => {
-  const code = await compileWithGlossary('The xAPIvalue differs from API.');
+  const code = await compileWithGlossary('xAPIvalue caféAPI API中 𐐀API APÍ. İ API.');
 
   assert.equal((code.match(/term="API"/g) || []).length, 1);
+  assert.match(code, />\{"API"\}<\/GlossaryTerm>/);
 });
 
 test('compiles repeated occurrences without malformed MDX', async () => {

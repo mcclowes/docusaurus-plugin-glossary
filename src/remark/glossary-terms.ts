@@ -21,7 +21,7 @@ interface TermMatch {
 interface MatchableTerm {
   termObj: GlossaryTerm;
   phrase: string;
-  caseSensitive: boolean;
+  pattern: RegExp;
 }
 
 // Cache for glossary data to avoid repeated synchronous file reads
@@ -29,9 +29,7 @@ interface MatchableTerm {
 const glossaryCache = new Map<string, CacheEntry>();
 const CACHE_TTL = 5000; // 5 seconds TTL to allow for file changes during dev
 
-const PLURAL_SUFFIXES = ['', 's', 'es'];
-
-const isWordChar = (char: string | undefined) => char !== undefined && /\w/.test(char);
+const WORD_CHAR = String.raw`[\p{L}\p{N}\p{M}_]`;
 
 /**
  * Creates a remark plugin that automatically detects and replaces glossary terms in markdown
@@ -158,7 +156,15 @@ export default function remarkGlossaryTerms({
       if (typeof phrase !== 'string' || phrase.trim() === '') return;
       const key = phrase.toLowerCase();
       if (!termMap.has(key)) {
-        termMap.set(key, { termObj, phrase, caseSensitive });
+        const escapedPhrase = phrase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        termMap.set(key, {
+          termObj,
+          phrase,
+          pattern: new RegExp(
+            `(?<!${WORD_CHAR})${escapedPhrase}(?:[eE]?[sS])?(?!${WORD_CHAR})`,
+            caseSensitive ? 'gu' : 'giu'
+          ),
+        });
       }
     };
 
@@ -192,44 +198,18 @@ export default function remarkGlossaryTerms({
 
     const result: PhrasingContent[] = [];
     let lastIndex = 0;
-    const textLower = text.toLowerCase();
 
     // Find all matches
     const matches: TermMatch[] = [];
-    for (const [lowerPhrase, { termObj, phrase, caseSensitive }] of sortedTerms) {
-      // Case-sensitive terms search the original text for the exact casing;
-      // case-insensitive terms search the lowercased text for the lowercased phrase.
-      const haystack = caseSensitive ? text : textLower;
-      const needle = caseSensitive ? phrase : lowerPhrase;
-      let searchIndex = 0;
-
-      while (searchIndex < haystack.length) {
-        const index = haystack.indexOf(needle, searchIndex);
-        if (index === -1) break;
-
-        // Whole-word match, tolerating a plural suffix (webhook -> webhooks, box -> boxes).
-        // Boundaries are checked on the lowercased text so letter-class checks behave
-        // consistently regardless of the term's case-sensitivity setting.
-        const afterIndex = index + needle.length;
-        const suffix = isWordChar(textLower[index - 1])
-          ? undefined
-          : PLURAL_SUFFIXES.find(
-              s =>
-                textLower.startsWith(s, afterIndex) && !isWordChar(textLower[afterIndex + s.length])
-            );
-
-        if (suffix !== undefined) {
-          const matchLength = needle.length + suffix.length;
-          matches.push({
-            index,
-            length: matchLength,
-            termObj: termObj,
-            // Store original case from the text (what the reader actually wrote)
-            originalText: text.substring(index, index + matchLength),
-          });
-        }
-
-        searchIndex = index + 1;
+    for (const [, { termObj, pattern }] of sortedTerms) {
+      // Search the original string so Unicode case folding cannot shift source offsets.
+      for (const match of text.matchAll(pattern)) {
+        matches.push({
+          index: match.index,
+          length: match[0].length,
+          termObj,
+          originalText: match[0],
+        });
       }
     }
 
