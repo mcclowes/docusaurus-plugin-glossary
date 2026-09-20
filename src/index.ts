@@ -26,6 +26,11 @@ const currentDir = path.dirname(currentFilePath);
 // Validate peer dependencies at module load time
 validatePeerDependencies(currentDir);
 
+/** Route paths are absolute to the host, so they need the site baseUrl; links built with <Link> add it themselves. */
+function withBaseUrl(baseUrl: string | undefined, routePath: string): string {
+  return `${(baseUrl ?? '/').replace(/\/+$/, '')}/${routePath.replace(/^\/+/, '')}`;
+}
+
 /**
  * Docusaurus Glossary Plugin
  *
@@ -160,7 +165,7 @@ export default function glossaryPlugin(
 
       if (generatePage) {
         addRoute({
-          path: routePath,
+          path: withBaseUrl(context.baseUrl, routePath),
           component: path.join(currentDir, 'components/GlossaryPage.js'),
           exact: true,
           modules: {
