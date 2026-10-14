@@ -318,6 +318,10 @@ The `GlossaryTerm` component is provided via the theme system (`@theme/GlossaryT
 - Swizzlable for custom styling and behavior
 - Accessible to both the remark plugin and manual usage
 
+Manual `<GlossaryTerm>` links use the default glossary plugin's configured `routePath` when no route override is provided. An explicit nonempty `routePath` takes precedence, and `/glossary` remains the fallback. `documentationPath` and a term's `documentation.path` still take precedence over glossary-entry links.
+
+The configured-route fallback fix is unreleased. Until it is published, pass `routePath` explicitly for manual terms on custom glossary routes.
+
 ## Docusaurus v3 Notes and Troubleshooting
 
 - **MDX imports**: The plugin automatically injects `import GlossaryTerm from '@theme/GlossaryTerm';` when it auto-links a term. You can also use it manually in MDX:
