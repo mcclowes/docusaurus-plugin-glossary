@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import Link from '@docusaurus/Link';
+import useBrokenLinks from '@docusaurus/useBrokenLinks';
 import styles from './GlossaryPage.module.css';
 import type { GlossaryData, GlossaryTerm } from '../types.js';
 
@@ -32,6 +33,7 @@ export interface GlossaryProps {
 
 export default function Glossary({ glossaryData, showTitle = true }: GlossaryProps) {
   const [searchTerm, setSearchTerm] = useState('');
+  const { collectAnchor } = useBrokenLinks();
 
   const terms = useMemo(() => glossaryData?.terms || [], [glossaryData?.terms]);
   const termIds = useMemo(
@@ -73,6 +75,13 @@ export default function Glossary({ glossaryData, showTitle = true }: GlossaryPro
   }, [filteredTerms]);
 
   const letters = Object.keys(groupedTerms).sort();
+
+  letters.forEach(letter => {
+    collectAnchor(`letter-${letter}`);
+    groupedTerms[letter].forEach(term => {
+      collectAnchor(term.id || term.term.toLowerCase().replace(/\s+/g, '-'));
+    });
+  });
 
   const glossaryTitle = glossaryData?.title || 'Glossary';
 

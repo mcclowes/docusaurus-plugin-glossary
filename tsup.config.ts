@@ -28,6 +28,7 @@ export default defineConfig({
     '@docusaurus/ExecutionEnvironment',
     '@docusaurus/BrowserOnly',
     '@docusaurus/useGlobalData',
+    '@docusaurus/useBrokenLinks',
     '@docusaurus/useDocusaurusContext',
     '@docusaurus/Link',
     '@theme/Layout',
