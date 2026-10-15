@@ -148,6 +148,27 @@ describe('glossaryPlugin', () => {
     );
   });
 
+  it('registers the page under the site baseUrl so link checks resolve it', async () => {
+    const plugin = glossaryPlugin({ ...context, baseUrl: '/sub/' }, { routePath: '/glossary' });
+    const content = await plugin.loadContent();
+    const mockAddRoute = jest.fn();
+    const mockSetGlobalData = jest.fn();
+
+    await plugin.contentLoaded({
+      content,
+      actions: {
+        createData: jest.fn(() => Promise.resolve('path/to/data.json')),
+        addRoute: mockAddRoute,
+        setGlobalData: mockSetGlobalData,
+      },
+    });
+
+    expect(mockAddRoute).toHaveBeenCalledWith(expect.objectContaining({ path: '/sub/glossary' }));
+    expect(mockSetGlobalData).toHaveBeenCalledWith(
+      expect.objectContaining({ routePath: '/glossary' })
+    );
+  });
+
   it('should return theme path', () => {
     const plugin = glossaryPlugin(context, {});
     const themePath = plugin.getThemePath();

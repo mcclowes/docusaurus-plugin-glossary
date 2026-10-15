@@ -14,6 +14,13 @@ declare module '@docusaurus/useGlobalData' {
   export function usePluginData(pluginName: string): unknown;
 }
 
+declare module '@docusaurus/useBrokenLinks' {
+  export default function useBrokenLinks(): {
+    collectAnchor: (anchor: string | undefined) => void;
+    collectLink: (link: string | undefined) => void;
+  };
+}
+
 declare module '@docusaurus/Link' {
   import type { AnchorHTMLAttributes, ComponentType, PropsWithChildren } from 'react';
 

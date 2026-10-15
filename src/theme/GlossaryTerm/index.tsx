@@ -31,7 +31,7 @@ type PluginData = GlossaryData & { routePath?: string };
  * @param {string} props.term - The glossary term
  * @param {string} props.definition - The definition to show in tooltip
  * @param {string} props.abbreviation - Optional long-form expansion shown in the tooltip
- * @param {string} props.routePath - Route path to glossary page (default: '/glossary')
+ * @param {string} props.routePath - Override the plugin route (fallback: '/glossary')
  * @param {React.ReactNode} props.children - Optional custom display text
  */
 export default function GlossaryTerm({
@@ -39,7 +39,7 @@ export default function GlossaryTerm({
   definition,
   abbreviation,
   id,
-  routePath = '/glossary',
+  routePath,
   documentationPath,
   children,
 }: GlossaryTermProps) {

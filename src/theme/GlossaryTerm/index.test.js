@@ -1,9 +1,45 @@
 import React from 'react';
 import { render, screen, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import * as globalData from '@docusaurus/useGlobalData';
 import GlossaryTerm from './index';
 
 describe('GlossaryTerm', () => {
+  afterEach(() => jest.restoreAllMocks());
+
+  it('uses the configured glossary route when routePath is omitted', () => {
+    jest.spyOn(globalData, 'usePluginData').mockReturnValue({
+      terms: [{ term: 'API', id: 'api', definition: 'An interface.' }],
+      routePath: '/reference/terms',
+    });
+
+    render(<GlossaryTerm term="API" />);
+
+    expect(screen.getByRole('link', { name: 'API' })).toHaveAttribute(
+      'href',
+      '/reference/terms#api'
+    );
+  });
+
+  it.each(['/manual-terms', '/glossary'])('keeps the explicit %s route override', routePath => {
+    jest.spyOn(globalData, 'usePluginData').mockReturnValue({
+      terms: [],
+      routePath: '/reference/terms',
+    });
+
+    render(<GlossaryTerm term="API" routePath={routePath} />);
+
+    expect(screen.getByRole('link', { name: 'API' })).toHaveAttribute('href', `${routePath}#api`);
+  });
+
+  it('falls back to /glossary when no route is configured', () => {
+    jest.spyOn(globalData, 'usePluginData').mockReturnValue({ terms: [] });
+
+    render(<GlossaryTerm term="API" />);
+
+    expect(screen.getByRole('link', { name: 'API' })).toHaveAttribute('href', '/glossary#api');
+  });
+
   it('should render term text', () => {
     render(<GlossaryTerm term="API" definition="Application Programming Interface" />);
 

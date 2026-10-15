@@ -7,7 +7,7 @@
 
 A comprehensive Docusaurus plugin that provides glossary functionality with an auto-generated glossary page, searchable terms, and inline term tooltips.
 
-> Compatibility: Fully compatible with Docusaurus v3 (MDX v3). If you were on a v2-era fork, please upgrade to the latest 2.x release of this plugin.
+> Compatibility: Requires Docusaurus v3.1 or newer (MDX v3). If you were on a v2-era fork, please upgrade to the latest 2.x release of this plugin.
 
 ## Features
 
@@ -318,6 +318,10 @@ The `GlossaryTerm` component is provided via the theme system (`@theme/GlossaryT
 - Swizzlable for custom styling and behavior
 - Accessible to both the remark plugin and manual usage
 
+Manual `<GlossaryTerm>` links use the default glossary plugin's configured `routePath` when no route override is provided. An explicit nonempty `routePath` takes precedence, and `/glossary` remains the fallback. `documentationPath` and a term's `documentation.path` still take precedence over glossary-entry links.
+
+The configured-route fallback fix is unreleased. Until it is published, pass `routePath` explicitly for manual terms on custom glossary routes.
+
 ## Docusaurus v3 Notes and Troubleshooting
 
 - **MDX imports**: The plugin automatically injects `import GlossaryTerm from '@theme/GlossaryTerm';` when it auto-links a term. You can also use it manually in MDX:
@@ -329,7 +333,7 @@ The `GlossaryTerm` component is provided via the theme system (`@theme/GlossaryT
   ```
 
 - **No tooltips or no auto-linking?**
-  - Confirm you're on `@docusaurus/core@^3` and `react@^18`.
+  - Confirm you're on `@docusaurus/core@^3.1` and `react@^18`.
   - Ensure the plugin is listed in `plugins` AND the remark plugin is configured in your preset (see Step 2 above).
   - Visit `/glossary`. If the page or route fails to render, verify your `glossaryPath` file exists and contains a `terms` array.
   - Clear your Docusaurus cache with `npm run clear` and restart your dev server.
@@ -388,6 +392,8 @@ Our <GlossaryTerm term="API" definition="Application Programming Interface">REST
 ### Step 4: Access the Glossary Page
 
 The glossary page is automatically available at `/glossary` (or your configured `routePath`).
+
+Standalone and embedded glossaries register their term and letter anchors with Docusaurus, so valid glossary links pass `onBrokenAnchors: 'throw'` validation. This anchor-registration fix is unreleased. It requires Docusaurus 3.1 or newer, which introduced anchor validation and the collector API.
 
 **Features:**
 
@@ -668,7 +674,7 @@ See [CHANGELOG.md](CHANGELOG.md) for version history and release notes.
 
 ## Credits
 
-Built for Docusaurus v3.x
+Built for Docusaurus v3.1 and newer
 
 ## Technical Details
 

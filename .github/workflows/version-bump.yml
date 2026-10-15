@@ -53,9 +53,15 @@ jobs:
 
       - name: Bump version
         id: version
+        env:
+          VERSION_TYPE: ${{ inputs.version_type }}
         run: |
-          NEW_VERSION=$(npm version ${{ github.event.inputs.version_type }} --no-git-tag-version)
-          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          case "$VERSION_TYPE" in
+            patch|minor|major) ;;
+            *) echo "Unsupported version bump type: $VERSION_TYPE" >&2; exit 1 ;;
+          esac
+          NEW_VERSION=$(npm version "$VERSION_TYPE" --no-git-tag-version)
+          echo "new_version=$NEW_VERSION" >> "$GITHUB_OUTPUT"
           echo "Bumped version to $NEW_VERSION"
 
       - name: Create pull request
